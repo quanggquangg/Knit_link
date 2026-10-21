@@ -1,0 +1,6 @@
+{
+    "name": "KnitLink.Game",
+    "rootNamespace": "KnitLink",
+    "references": ["KnitLink.Core", "UnityEngine.UI", "Unity.InputSystem"],
+    "autoReferenced": true
+}

@@ -1,0 +1,6 @@
+{
+    "name": "KnitLink.Core",
+    "rootNamespace": "KnitLink",
+    "references": [],
+    "autoReferenced": true
+}

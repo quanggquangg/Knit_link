@@ -1,0 +1,7 @@
+{
+    "name": "KnitLink.Editor",
+    "rootNamespace": "KnitLink.EditorTools",
+    "references": ["KnitLink.Core", "KnitLink.Game"],
+    "includePlatforms": ["Editor"],
+    "autoReferenced": false
+}

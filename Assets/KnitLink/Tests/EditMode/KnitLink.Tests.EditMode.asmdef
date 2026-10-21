@@ -1,0 +1,10 @@
+{
+    "name": "KnitLink.Tests.EditMode",
+    "rootNamespace": "KnitLink.Tests",
+    "references": ["KnitLink.Core", "UnityEngine.TestRunner", "UnityEditor.TestRunner"],
+    "includePlatforms": ["Editor"],
+    "overrideReferences": true,
+    "precompiledReferences": ["nunit.framework.dll"],
+    "autoReferenced": false,
+    "defineConstraints": ["UNITY_INCLUDE_TESTS"]
+}

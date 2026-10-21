@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d2c8e7b9a1ec3ad4394e4f47c2782535, type: 3}
+  m_Name: GameConfig
+  m_EditorClassIdentifier: KnitLink.Core::KnitLink.GameConfig
+  levelList: {fileID: 11400000, guid: 0c54e48ee85dd354faf7ff0e935c05ef, type: 2}
+  startCoins: 1000
+  winCoinsEasy: 20
+  winCoinsMedium: 20
+  winCoinsHard: 40
+  winCoinsSuperHard: 60
+  undoUnlockLevel: 5
+  hintUnlockLevel: 10
+  shelfUnlockLevel: 15
+  boostersOnUnlock: 2
+  undoPrice: 200
+  hintPrice: 150
+  shelfPrice: 250
+  shelfSlots: 6
+  extraShelfSlots: 2
+  maxRevives: 2
+  revive1Coins: 300
+  revive2Coins: 600
+  revive1ByAd: 1
+  revive2ByAd: 0
+  reviveBagSize: 4
+  adSeconds: 1.6
+  solverBudget: 20000
