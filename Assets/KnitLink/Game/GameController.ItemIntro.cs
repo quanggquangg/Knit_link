@@ -1,5 +1,6 @@
 // GameController – "New item" popups with a looping demo (design canvas ItemIntro, 20/10):
-//   hidden yarn (Lv6) · tangles (Lv12) · deeper stacks (Lv16) · frozen yarn (Lv21) · yarn rolls down/left/up/right (Lv24/27/36/48)
+//   hidden yarn (Lv6) · deeper stacks (Lv8, was 16) · tangles (Lv12) · frozen yarn (Lv21) · yarn rolls down/left/up/right (Lv24/27/36/48)
+//   · needle box (Lv32) · conveyor belt (Lv43)
 // Each demo is built from plain images and animated by LoopAnim + KF keyframes (times are fractions of the loop).
 // To add an item: add a row to IntroText and a case in BuildIntroDemo.
 // (GameController is split into GameController.*.cs files by feature; all parts share the same fields.)
@@ -24,6 +25,8 @@ namespace KnitLink
             { "roll.left", ("Yarn rolls left",  "After each match, yarn rolls left.",         "The whole picture rolls left. Watch the board after each move.") },
             { "roll.up",   ("Yarn rolls up",    "After each match, yarn rolls up.",           "The whole picture rolls up. Watch the board after each move.") },
             { "roll.right",("Yarn rolls right", "After each match, yarn rolls right.",        "The whole picture rolls right. Watch the board after each move.") },
+            { "box",       ("Needle box",       "Match this color to open the box.",          "Match yarn of this color anywhere. At 0 the box opens.") },
+            { "belt",      ("Conveyor belt",    "This row slides 1 spot each match.",         "This row slides 1 spot after every match.") },
         };
 
         /// <summary>type = "mech" or "roll" (from the level file), key = hidden/tangles/deep/ice or down/left/up/right.</summary>
@@ -52,6 +55,8 @@ namespace KnitLink
             else if (kind == "deep") t = System.Array.FindIndex(S.stacks, st => st.Count > 2);
             else if (kind == "tangles") t = System.Array.FindIndex(S.tg, h => h > 0);
             else if (kind == "ice") t = System.Array.FindIndex(S.ice, n => n > 0);
+            else if (kind == "box") return boxLid;
+            else if (kind == "belt") return beltStrip;
             else return (RectTransform)rollChip.transform.parent;
             return t >= 0 ? cells[t].rt : null;
         }
@@ -72,6 +77,8 @@ namespace KnitLink
         void BuildIntroDemo(string kind, RectTransform box)
         {
             if (kind.StartsWith("roll.")) { RollDemo(kind.Substring(5), box); return; }
+            if (kind == "box") { BoxDemo(box); return; }
+            if (kind == "belt") { BeltDemo(box); return; }
             switch (kind)
             {
                 case "hidden":
@@ -118,7 +125,7 @@ namespace KnitLink
                 {   // 3.8 s: any match (pulse) counts the ice 3 → 2 → 1, then it breaks into 4 pieces
                     var g = UIKit.Rect("Frozen", box); g.anchoredPosition = new Vector2(-150, 0); g.sizeDelta = new Vector2(288, 288);
                     DemoBall(g, "blue", 233, Vector2.zero);
-                    var ice = UIKit.Img("Ice", g, UIKit.Rounded, new Color(.75f, .9f, 1f, .55f)); UIKit.Stretch(ice.rectTransform);
+                    var ice = UIKit.Img("Ice", g, UIKit.Rounded, IceBlock); UIKit.Stretch(ice.rectTransform);   // opaque: the ball shows only when it breaks
                     var n = UIKit.Txt("N", ice.transform, "3", 120, UIKit.Hex("#16457a")); UIKit.Stretch(n.rectTransform);
                     var shards = new List<Image>(); Vector2[] dirs = { new Vector2(-1, 1), new Vector2(1, 1), new Vector2(-1, -1), new Vector2(1, -1) };
                     foreach (var d in dirs) { var s = UIKit.Img("Shard", g, UIKit.Rounded, new Color(.8f, .93f, 1f, 0)); s.rectTransform.sizeDelta = new Vector2(122, 122); s.rectTransform.anchoredPosition = d * 61; shards.Add(s); }
@@ -128,7 +135,7 @@ namespace KnitLink
                     LoopAnim.Add(box.gameObject, 3.8f, p =>
                     {
                         n.text = p < .23f ? "3" : p < .45f ? "2" : "1";
-                        Alpha(ice, p < .64f || p > .97f ? .55f : 0); Alpha(n, p < .64f || p > .97f ? 1 : 0);
+                        Alpha(ice, p < .64f || p > .97f ? 1 : 0); Alpha(n, p < .64f || p > .97f ? 1 : 0);
                         for (int i = 0; i < 4; i++)
                         {
                             float q = Mathf.Clamp01((p - .64f) / .2f); shards[i].color = new Color(.8f, .93f, 1f, p >= .64f && p < .84f ? .85f * (1 - q) : 0);
@@ -140,6 +147,51 @@ namespace KnitLink
                     break;
                 }
             }
+        }
+
+        /// <summary>Needle box, 4.4 s: two red pairs are matched (pulse), the count goes 4 → 2 → 0, the lid lifts and shows 4 balls.</summary>
+        void BoxDemo(RectTransform box)
+        {
+            var g = UIKit.Rect("Box", box); g.anchoredPosition = new Vector2(-120, 0); g.sizeDelta = new Vector2(300, 300);
+            var bottom = UIKit.Img("Bottom", g, UIKit.Rounded, UIKit.Hex("#a87650")); bottom.rectTransform.sizeDelta = new Vector2(280, 250); bottom.rectTransform.anchoredPosition = new Vector2(0, -20);
+            string[] inside = { "blue", "yellow", "green", "cream" }; var balls = new List<Image>();
+            for (int i = 0; i < 4; i++) balls.Add(DemoBall(g, inside[i], 92, new Vector2(i % 2 == 0 ? -56 : 56, i < 2 ? 34 : -70)));
+            var lid = UIKit.Img("Lid", g, UIKit.Rounded, LidRed); lid.rectTransform.sizeDelta = new Vector2(300, 280);
+            var panel = UIKit.Img("Stitches", lid.transform, UIKit.Rounded, LidPanel); panel.rectTransform.sizeDelta = new Vector2(250, 220); panel.rectTransform.anchoredPosition = new Vector2(0, 6);
+            var label = UIKit.Img("Label", lid.transform, UIKit.Rounded, LidLabel); Pill(label, 96); label.rectTransform.sizeDelta = new Vector2(190, 96);
+            DemoBall(label.rectTransform, "red", 66, new Vector2(-44, 0));
+            var n = UIKit.Txt("N", label.transform, "4", 64, UIKit.Hex("#fffaf0")); n.rectTransform.sizeDelta = new Vector2(90, 90); n.rectTransform.anchoredPosition = new Vector2(42, 0);
+            var pulse = UIKit.Rect("AnyMatch", box); pulse.anchoredPosition = new Vector2(200, 20); pulse.sizeDelta = new Vector2(200, 120);
+            var pa = DemoBall(pulse, "red", 78, new Vector2(-42, 10)); var pb = DemoBall(pulse, "red", 78, new Vector2(42, 10));
+            var lab = UIKit.Txt("Label", box, "any match", 33, CardSoft); lab.rectTransform.anchoredPosition = new Vector2(200, -60); lab.rectTransform.sizeDelta = new Vector2(240, 50);
+            LoopAnim.Add(box.gameObject, 4.4f, p =>
+            {
+                n.text = p < .24f ? "4" : p < .46f ? "2" : "0";
+                float pul = KF.At(p, .08f, 0, .12f, 1, .24f, 0, .30f, 1, .46f, 0);
+                Alpha(pa, pul); Alpha(pb, pul);
+                float up = KF.At(p, .5f, 0, .64f, 1, .92f, 1, .96f, 0);
+                lid.rectTransform.anchoredPosition = new Vector2(0, 230 * up); lid.rectTransform.localEulerAngles = new Vector3(0, 0, 12 * up); Alpha(lid, 1 - up);
+            });
+        }
+
+        /// <summary>Conveyor belt, 3.6 s: a pair is matched elsewhere, then the row slides 1 spot to the right; the last ball wraps to the front.</summary>
+        void BeltDemo(RectTransform box)
+        {
+            const float Step = 130, BallS = 100;
+            var strip = UIKit.Img("Belt", box, UIKit.Rounded, BeltColor); strip.rectTransform.sizeDelta = new Vector2(5 * Step + 30, 150);
+            strip.gameObject.AddComponent<RectMask2D>();
+            string[] cols = { "yellow", "blue", "green", "red", "pink" }; var balls = new List<Image>();
+            for (int i = 0; i < 5; i++) balls.Add(DemoBall(strip.rectTransform, cols[i], BallS, new Vector2((i - 2) * Step, 0)));
+            var wrapIn = DemoBall(strip.rectTransform, cols[4], BallS, new Vector2(-2 * Step - Step, 0));
+            var arrow = UIKit.Img("Arrow", box, UIKit.IconArrowDown, Color.white); arrow.rectTransform.sizeDelta = new Vector2(110, 110);
+            arrow.rectTransform.localEulerAngles = new Vector3(0, 0, 90); arrow.rectTransform.anchoredPosition = new Vector2(0, 150);
+            LoopAnim.Add(box.gameObject, 3.6f, p =>
+            {
+                float m = KF.At(p, .30f, 0, .52f, 1, .92f, 1, .96f, 0);
+                for (int i = 0; i < 5; i++) balls[i].rectTransform.anchoredPosition = new Vector2((i - 2 + m) * Step, 0);
+                wrapIn.rectTransform.anchoredPosition = new Vector2((-3 + m) * Step, 0);
+                Alpha(arrow, KF.At(p, .24f, 0, .30f, 1, .52f, 1, .60f, 0));
+            });
         }
 
         /// <summary>3×3 board: the green pair is linked and leaves, the 4 balls behind it roll one spot; the arrow shows only while they roll.</summary>

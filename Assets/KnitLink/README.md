@@ -33,6 +33,8 @@ Build 1: chỉ có màn chơi (không Home, Shop, mạng). Mở game là vào le
   "baskets": [ { "color": "O", "part": "carrot" }, { "color": "B", "part": "eyes" } ],
   "board":   [ "B    R  B    C*4  C",
                "C*4  .  _    B    O" ],
+  "box":     { "x": 1, "y": 0, "color": "R", "count": 4 },
+  "belt":    { "row": 1, "dir": "right" },
   "picture": [ "666666666666666666666666", "… 24 dòng × 24 ký tự …" ]
 }
 ```
@@ -51,11 +53,13 @@ Ký hiệu ô trên `board` (cách nhau bằng dấu cách, mỗi chuỗi là 1 
 - `baskets`: thứ tự giỏ đan. Giỏ đầu tiên là số `0`, tiếp theo `1`, `2`… (sau `9` là `a`, `b`…).
 - `picture`: tranh 24×24 (từ 20/10), mỗi ký tự là số của giỏ đan mũi đó. Màu chủ thể không trùng màu nền; xem tranh ở cỡ nhỏ vẫn phải đọc ra hình.
 - `difficulty`: `easy` / `medium` / `hard` / `superhard` (đổi màu tiêu đề và số coin thưởng).
-- `intro` (hướng dẫn khi vào level): `howto`, `shelf`, `gaps`, `hidden`, `tangles`, `deep`, `ice`, `roll` hoặc để trống. Hướng dẫn đi theo level khi đổi thứ tự.
+- `intro` (hướng dẫn khi vào level): `howto`, `shelf`, `gaps`, `hidden`, `tangles`, `deep`, `ice`, `roll`, `box`, `belt` hoặc để trống. Hướng dẫn đi theo level khi đổi thứ tự.
 - `roll`: `none` / `down` / `up` / `left` / `right`.
+- `box` (tùy chọn, 23/10): **hộp kim chỉ** phủ 2×2 ô, góc trên-trái ở cột `x`, hàng `y` của `board` (đếm từ 0). 4 ô dưới hộp mỗi ô đúng 1 cuộn. Mỗi cuộn màu `color` được nối ở bất kỳ đâu làm số `count` giảm 1; về 0 nắp mở. Khi đóng: không chạm được, chặn đường nối, không lăn.
+- `belt` (tùy chọn, 23/10): **băng chuyền** trên hàng `row` (đếm từ 0, hàng phải đủ ô, không có khe), `dir` = `right`/`left`. Sau mỗi lần nối hợp lệ cả hàng trượt 1 ô, ô cuối vòng về đầu. Không đặt hộp kim chỉ trên hàng băng chuyền.
 - Booster **không** ghi trong level: mở khóa theo **số level** trong `GameConfig` (mặc định Undo 5, Hint 10, Shelf 15).
 
-**Luật tự kiểm tra (Validate):** mỗi màu phải đúng 4 cuộn × số giỏ màu đó; bàn tối đa 6×7; tối đa 5 màu; chồng tối đa 2 cuộn trước Level 16, 3 từ Level 16; level phải giải được; báo tỉ lệ thắng của bot.
+**Luật tự kiểm tra (Validate):** mỗi màu phải đúng 4 cuộn × số giỏ màu đó; bàn tối đa 6×7; tối đa 6 màu (từ 22/10); chồng tối đa 3 cuộn từ Level 8 ở màn vừa/khó/siêu khó và từ Level 16 ở mọi màn, còn lại 2 (quy tắc 23/10); hộp kim chỉ: 4 ô đơn, đủ cuộn màu đó bên ngoài, không nằm trên hàng băng chuyền; level phải giải được; báo tỉ lệ thắng của bot.
 
 **Thêm level mới:** Level Editor › **New level** (tạo `level_XX.json` mới, copy level đang mở, thêm vào cuối LevelList). Hoặc tạo file trong `Resources/Levels` rồi kéo vào LevelList.
 
@@ -76,7 +80,8 @@ Mở Console, gõ tag vào ô tìm kiếm để lọc: `[Level]` `[Move]` `[Boos
 | Ô túi len cạnh SHELF, hoạt ảnh 4 cuộn bay vào túi (thời gian trong `BagT`) | `Game/GameController.Bag.cs` |
 | Nội dung từng popup: Settings, booster, Retry, revive, lose, win ×3, quảng cáo giả | `Game/GameController.Popups.cs` |
 | Khung popup chung: pill, tiêu đề, icon tròn, nút coin/ads, thanh tiến độ, nút X, hiệu ứng mở | `Game/GameController.Popup.cs` (`Card`, `OpenCard`) |
-| Popup giới thiệu item có hoạt ảnh (len ẩn, rối, băng, lăn…) | `Game/GameController.ItemIntro.cs` |
+| Popup giới thiệu item có hoạt ảnh (len ẩn, rối, băng, lăn, hộp kim chỉ, băng chuyền…) | `Game/GameController.ItemIntro.cs` |
+| Nắp hộp kim chỉ, dải băng chuyền, hiệu ứng nối không được (rung + nháy đỏ, không chữ) | `Game/GameController.Mech.cs` (thời gian trong `MechT`) |
 | Hiệu ứng mở màn khi vào level (thời gian trong `IntroT`) | `Game/GameController.Intro.cs` |
 | Tranh đan (mũi đan, viền, bóng mờ) | `Game/PictureRenderer.cs` |
 | Icon vẽ bằng code (bánh răng, ổ khóa, túi len, coin…) | `Game/UIKit.Icons.cs` – thay sprite ở đây khi có art |

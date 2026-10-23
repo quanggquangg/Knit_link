@@ -20,7 +20,8 @@ namespace KnitLink.Tests
             var errors = new List<string>();
             var L = LevelJsonIO.Parse(ta.text, file, errors);
             Assert.IsEmpty(errors, string.Join("\n", errors));
-            var r = LevelCheck.Check(L, GameConfig.Current.shelfSlots, 20000, 0);
+            // big levels (50+ balls) need a large budget for the simple DFS solver (23/10)
+            var r = LevelCheck.Check(L, GameConfig.Current.shelfSlots, 600000, 0);
             Assert.IsEmpty(r.errors, string.Join("\n", r.errors));
             Assert.IsTrue(r.solvable, r.solverGaveUp ? "solver gave up (budget too small?)" : "the level cannot be won");
         }
@@ -36,6 +37,10 @@ namespace KnitLink.Tests
             CollectionAssert.AreEqual(a.baskets, b.baskets);
             CollectionAssert.AreEqual(a.picture, b.picture);
             for (int t = 0; t < a.board.stacks.Length; t++) Assert.AreEqual(LevelJsonIO.SpotToken(a, t), LevelJsonIO.SpotToken(b, t));
+            Assert.AreEqual(a.box == null, b.box == null, "needle box");
+            if (a.box != null) { CollectionAssert.AreEqual(a.box.spots, b.box.spots); Assert.AreEqual(a.box.color, b.box.color); Assert.AreEqual(a.box.count, b.box.count); }
+            Assert.AreEqual(a.belt == null, b.belt == null, "conveyor belt");
+            if (a.belt != null) { Assert.AreEqual(a.belt.row, b.belt.row); Assert.AreEqual(a.belt.dir, b.belt.dir); }
         }
     }
 }

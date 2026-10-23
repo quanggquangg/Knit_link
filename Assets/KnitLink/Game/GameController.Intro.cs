@@ -40,6 +40,8 @@ namespace KnitLink
                     if (im != null && im.gameObject.activeSelf) PopIn(im.rectTransform, d + IntroT.Drop * .65f, .26f);
                 if (v.shadow != null) Fade(v.shadow, d - .06f, .16f);
             }
+            if (beltStrip != null) PopIn(beltStrip, IntroT.Balls - .08f, .3f, .98f);
+            if (boxLid != null) PopIn(boxLid, last, .36f);
             float total = last + IntroT.Drop + .06f; introUntil = Time.unscaledTime + total;
             return total;
         }

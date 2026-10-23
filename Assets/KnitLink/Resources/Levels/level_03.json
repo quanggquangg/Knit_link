@@ -2,7 +2,7 @@
   "name": "Cactus Bloom",
   "tag": "Board gaps",
   "difficulty": "easy",
-  "intro": "gaps",
+  "intro": "",
   "roll": "none",
   "baskets": [
     { "color": "B", "part": "lower sky" },

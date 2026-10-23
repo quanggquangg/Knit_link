@@ -1,7 +1,9 @@
 // Knit Link – core rules (pure C#, no Unity dependency).
 // Flat board, stacks of up to 3 balls per spot (only the front one can be played; the ones below are hidden),
 // tangles, rolling yarn, ONE basket of 4 taking yarn at a time (the next 2 are shown as a preview),
-// a 6-slot shelf, auto-finish, Onet line rule (max 2 bends), frozen yarn (thaws by 1 on every valid match anywhere).
+// a 6-slot shelf, auto-finish, Onet line rule (max 2 bends), frozen yarn (thaws by 1 on every valid match anywhere),
+// needle box (lid over 2x2 spots, opens after N balls of its color are matched anywhere) and conveyor belt
+// (one full row slides 1 spot after every valid match, the last spot wraps to the front) – both added 23/10.
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,16 +23,21 @@ namespace KnitLink
         public Basket Copy() => new Basket { id = id, li = li, c = c, fill = fill };
     }
 
-    public enum EvKind { Leave, Jar, Shelf, Over, Absorb, Done, Reveal, Tangle, Roll, BagAbsorb, ToBag, Ice }
+    public enum EvKind { Leave, Jar, Shelf, Over, Absorb, Done, Reveal, Tangle, Roll, BagAbsorb, ToBag, Ice, Box, BoxOpen, Belt }
 
     public struct LeaveItem { public int t; public int id; public string c; }
-    public struct RollMove { public int from, to; }
+    public struct RollMove { public int from, to; public bool wrap; }   // wrap: belt only, the spot went from one end of the row to the other
+
+    /// <summary>Needle box: closed while n > 0. t = the 4 spots under the lid, c = the color that counts it down.</summary>
+    public class BoxState { public int[] t; public string c; public int n; public BoxState Copy() => new BoxState { t = t, c = c, n = n }; }
+    /// <summary>Conveyor belt: ts = the row's spots left to right, dir +1 = slides right, -1 = left.</summary>
+    public class BeltState { public int row, dir; public int[] ts; }
 
     public class GameEvent
     {
         public EvKind k;
         public string basketId; public int li; public string c;
-        public int idx; public int t; public int hp;
+        public int idx; public int t; public int hp; public int dir;
         public List<LeaveItem> items; public List<RollMove> moves;
     }
 
@@ -90,6 +97,8 @@ namespace KnitLink
         public List<string> bag = new List<string>(); public int bagCap;
         public bool over;
         public List<int> done = new List<int>();
+        public BoxState box;      // null = no needle box
+        public BeltState belt;    // null = no conveyor belt
 
         // ---------- construction ----------
         public static BoardState FromLevel(LevelDef L)
@@ -107,6 +116,12 @@ namespace KnitLink
                 s.ice[t] = L.board.ice != null && t < L.board.ice.Length ? L.board.ice[t] : 0;
             }
             for (int i = 0; i < L.baskets.Length; i++) s.q.Add(new Basket { id = "j" + i, li = i, c = L.baskets[i] });
+            if (L.box != null && L.box.count > 0) s.box = new BoxState { t = L.box.spots, c = L.box.color, n = L.box.count };
+            if (L.belt != null)
+            {
+                var ts = new List<int>(); for (int x = 0; x < s.geo.W; x++) { int t = s.geo.at[L.belt.row * s.geo.W + x]; if (t >= 0) ts.Add(t); }
+                s.belt = new BeltState { row = L.belt.row, dir = L.belt.dir < 0 ? -1 : 1, ts = ts.ToArray() };
+            }
             return s;
         }
 
@@ -117,6 +132,7 @@ namespace KnitLink
             n.tg = (int[])tg.Clone(); n.ice = (int[])ice.Clone();
             n.q = q.Select(j => j.Copy()).ToList();
             n.shelf = new List<string>(shelf); n.done = new List<int>(done); n.bag = new List<string>(bag); n.bagCap = bagCap;
+            n.box = box?.Copy(); n.belt = belt;
             return n;
         }
 
@@ -125,10 +141,12 @@ namespace KnitLink
         /// <summary>Frozen yarn can't be tapped, can't be matched, blocks the line and stays still when the board rolls.</summary>
         public bool Frozen(int t) => ice[t] > 0 && stacks[t].Count > 0;
         public bool Full(int t) => stacks[t].Count > 0 || tg[t] > 0;
+        /// <summary>Under a closed needle box: can't be tapped or matched, blocks the line, doesn't roll.</summary>
+        public bool Boxed(int t) => box != null && box.n > 0 && Array.IndexOf(box.t, t) >= 0;
         public int Active => Math.Min(A, q.Count);
         public bool Won => q.Count == 0;
         public int BoardLeft { get { int n = 0; foreach (var st in stacks) n += st.Count; return n; } }
-        public bool CanAuto { get { int n = BoardLeft; return !over && !Won && n > 0 && n <= cap - shelf.Count; } }
+        public bool CanAuto { get { int n = BoardLeft; return !over && !Won && n > 0 && n <= cap - shelf.Count && !(box != null && box.n > 0); } }
         /// <summary>No pair can be joined any more and the level cannot finish by itself.</summary>
         public bool Stuck => !over && !Won && !CanAuto && Pairs().Count == 0;
 
@@ -206,7 +224,7 @@ namespace KnitLink
             var by = new Dictionary<string, List<int>>(); var outp = new List<(int a, int b)>();
             for (int t = 0; t < stacks.Length; t++)
             {
-                var b = Top(t); if (b == null || Frozen(t)) continue;
+                var b = Top(t); if (b == null || Frozen(t) || Boxed(t)) continue;
                 if (!by.TryGetValue(b.c, out var l)) by[b.c] = l = new List<int>();
                 l.Add(t);
             }
@@ -276,7 +294,7 @@ namespace KnitLink
             var moves = new List<RollMove>();
             foreach (int t in order)
             {
-                if (stacks[t].Count == 0 || Frozen(t)) continue;
+                if (stacks[t].Count == 0 || Frozen(t) || Boxed(t)) continue;
                 int x = geo.xy[t][0], y = geo.xy[t][1], cur = t;
                 while (true)
                 {
@@ -290,8 +308,33 @@ namespace KnitLink
             if (moves.Count > 0) ev?.Add(new GameEvent { k = EvKind.Roll, moves = moves });
         }
 
-        void AfterLeave(IEnumerable<int> from, List<GameEvent> ev)
+        /// <summary>Conveyor belt: the whole row slides 1 spot (balls with what is behind them, empty spots, tangles, ice); the last spot wraps.</summary>
+        void BeltShift(List<GameEvent> ev)
         {
+            if (belt == null) return;
+            var ts = belt.ts; int n = ts.Length;
+            var st = ts.Select(t => stacks[t]).ToArray(); var tgs = ts.Select(t => tg[t]).ToArray(); var ic = ts.Select(t => ice[t]).ToArray();
+            var moves = new List<RollMove>();
+            for (int i = 0; i < n; i++)
+            {
+                int j = (i + belt.dir + n) % n;
+                stacks[ts[j]] = st[i]; tg[ts[j]] = tgs[i]; ice[ts[j]] = ic[i];
+                if (st[i].Count > 0 || tgs[i] > 0) moves.Add(new RollMove { from = ts[i], to = ts[j], wrap = belt.dir > 0 ? j < i : j > i });
+            }
+            ev?.Add(new GameEvent { k = EvKind.Belt, dir = belt.dir, moves = moves });
+        }
+        /// <summary>Needle box: every matched ball of its color counts 1; at 0 the lid opens.</summary>
+        void BoxCount(IEnumerable<string> cols, List<GameEvent> ev)
+        {
+            if (box == null || box.n <= 0 || cols == null) return;
+            int k = cols.Count(c => c == box.c); if (k == 0) return;
+            box.n = Math.Max(0, box.n - k); ev?.Add(new GameEvent { k = EvKind.Box, hp = box.n });
+            if (box.n == 0) ev?.Add(new GameEvent { k = EvKind.BoxOpen });
+        }
+
+        void AfterLeave(IEnumerable<int> from, List<GameEvent> ev, IEnumerable<string> cols = null)
+        {
+            BoxCount(cols, ev);
             var list = from.ToList();
             foreach (int t in list)
             {
@@ -304,6 +347,7 @@ namespace KnitLink
             // every valid match thaws frozen yarn by one
             for (int t = 0; t < ice.Length; t++)
                 if (ice[t] > 0) { ice[t]--; ev?.Add(new GameEvent { k = EvKind.Ice, t = t, hp = ice[t] }); }
+            BeltShift(ev);
             Roll(ev);
         }
 
@@ -313,7 +357,7 @@ namespace KnitLink
             var leaving = new List<(int t, Ball b)>();
             foreach (int t in new[] { a, b }) { var st = stacks[t]; var ball = st[st.Count - 1]; st.RemoveAt(st.Count - 1); leaving.Add((t, ball)); }
             ev?.Add(new GameEvent { k = EvKind.Leave, items = leaving.Select(x => new LeaveItem { t = x.t, id = x.b.id, c = x.b.c }).ToList() });
-            AfterLeave(new[] { a, b }, ev);
+            AfterLeave(new[] { a, b }, ev, leaving.Select(x => x.b.c));
             foreach (var x in leaving) { if (over) break; Give(x.b.c, ev); }
         }
 
@@ -341,7 +385,7 @@ namespace KnitLink
             }
             if (items.Count == 0) return;
             ev?.Add(new GameEvent { k = EvKind.Leave, items = items.Select(x => new LeaveItem { t = x.t, id = x.b.id, c = x.b.c }).ToList() });
-            AfterLeave(items.Select(x => x.t).Distinct(), ev);
+            AfterLeave(items.Select(x => x.t).Distinct(), ev, items.Select(x => x.b.c));
             foreach (var x in items) { if (over) break; Give(x.b.c, ev); }
         }
 
@@ -363,7 +407,7 @@ namespace KnitLink
                 var cand = new List<(int t, int id, int d)>();
                 for (int t = 0; t < stacks.Length; t++)
                     for (int k = 0; k < stacks[t].Count; k++)
-                        if (stacks[t][k].c == c && !used.Contains(stacks[t][k].id)) cand.Add((t, stacks[t][k].id, stacks[t].Count - 1 - k));
+                        if (stacks[t][k].c == c && !used.Contains(stacks[t][k].id) && !Boxed(t)) cand.Add((t, stacks[t][k].id, stacks[t].Count - 1 - k));
                 foreach (var x in cand.OrderBy(x => x.d).Take(2)) { picks.Add((x.t, x.id)); used.Add(x.id); }
             }
             return picks;
@@ -399,6 +443,7 @@ namespace KnitLink
             sb.Append('|').Append(q.Count).Append(':');
             for (int i = 0; i < Math.Min(3, q.Count); i++) sb.Append(q[i].fill).Append(',');
             sb.Append('|').Append(string.Join(",", shelf.OrderBy(x => x))).Append('|').Append(string.Join(",", bag.OrderBy(x => x))).Append('|').Append(A).Append(cap);
+            if (box != null) sb.Append("|B").Append(box.n);
             return sb.ToString();
         }
 

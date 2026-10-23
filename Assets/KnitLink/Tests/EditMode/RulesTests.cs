@@ -1,6 +1,7 @@
 // Rule tests: tiny boards written in the same text format as the level files.
 // Run: Window > General > Test Runner > EditMode > Run All.
 using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 
 namespace KnitLink.Tests
@@ -19,15 +20,39 @@ namespace KnitLink.Tests
         }
 
         /// <summary>Builds a board from level-file rows. Baskets: color letters in order. Picture is filled with basket 0.</summary>
-        static BoardState Board(string baskets, params string[] rows)
+        static BoardState Board(string baskets, params string[] rows) => BoardX(baskets, "", rows);
+        /// <summary>Same, with extra level-file fields, e.g. "\"box\":{...},".</summary>
+        static BoardState BoardX(string baskets, string extra, params string[] rows)
         {
             var b = string.Join(",", System.Linq.Enumerable.Select(baskets.ToCharArray(), c => $"{{\"color\":\"{c}\",\"part\":\"p\"}}"));
             var pic = string.Join(",", System.Linq.Enumerable.Repeat("\"" + new string('0', LevelJsonIO.PictureSize) + "\"", LevelJsonIO.PictureSize));
-            var json = $"{{\"name\":\"t\",\"difficulty\":\"easy\",\"roll\":\"none\",\"baskets\":[{b}],\"board\":[{string.Join(",", System.Linq.Enumerable.Select(rows, r => "\"" + r + "\""))}],\"picture\":[{pic}]}}";
+            var json = $"{{\"name\":\"t\",\"difficulty\":\"easy\",\"roll\":\"none\",{extra}\"baskets\":[{b}],\"board\":[{string.Join(",", System.Linq.Enumerable.Select(rows, r => "\"" + r + "\""))}],\"picture\":[{pic}]}}";
             var errors = new List<string>();
             var L = LevelJsonIO.Parse(json, "test", errors);
             Assert.IsEmpty(errors, string.Join("\n", errors));
             return BoardState.FromLevel(L);
+        }
+
+        /// <summary>Needle box (23/10): the spots under a closed lid can't be matched; matching its color counts it down and opens it.</summary>
+        [Test] public void NeedleBoxBlocksUntilItsColorIsMatched()
+        {
+            var s = BoardX("RB", "\"box\":{\"x\":2,\"y\":0,\"color\":\"R\",\"count\":2},", "R R B B", "_ _ B B");
+            Assert.IsTrue(s.Boxed(2) && s.Boxed(7));
+            Assert.AreEqual(1, s.Pairs().Count, "only the red pair outside the box can be matched");
+            var ev = new List<GameEvent>(); s.Apply(0, 1, ev);
+            Assert.AreEqual(0, s.box.n);
+            Assert.IsTrue(ev.Exists(e => e.k == EvKind.BoxOpen));
+            Assert.IsFalse(s.Boxed(2));
+            Assert.Greater(s.Pairs().Count, 0, "the blue balls are free once the box is open");
+        }
+
+        /// <summary>Conveyor belt (23/10): after a valid match the belt row slides 1 spot and the last spot wraps to the front.</summary>
+        [Test] public void ConveyorBeltSlidesAfterEachMatch()
+        {
+            var s = BoardX("RB", "\"belt\":{\"row\":1,\"dir\":\"right\"},", "R R B G", "B G Y Y");
+            var ev = new List<GameEvent>(); s.Apply(0, 1, ev);
+            Assert.AreEqual(new[] { "Y", "B", "G", "Y" }, new[] { 4, 5, 6, 7 }.Select(t => ColorCodes.Letter(s.Top(t).c).ToString()).ToArray());
+            Assert.IsTrue(ev.Exists(e => e.k == EvKind.Belt));
         }
 
         [Test] public void MatchingFillsTheOpenBasket()

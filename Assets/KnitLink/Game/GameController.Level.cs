@@ -59,13 +59,15 @@ namespace KnitLink
                 var ring = Sub(v.back.rectTransform, UIKit.Ring, UIKit.Hex("#fffaf0"), .34f, 0, 0); ring.rectTransform.anchorMin = Vector2.zero; ring.rectTransform.anchorMax = Vector2.one; ring.rectTransform.sizeDelta = Vector2.zero;
                 v.backCount = UIKit.Txt("N", v.back.transform, "1", Mathf.RoundToInt(cs * .22f), UIKit.Hex("#fffaf0")); UIKit.Stretch(v.backCount.rectTransform);
                 v.knot = Sub(v.rt, UIKit.KnotSprite(false), Color.white, .9f, 0, 0);
-                // frozen yarn: icy block over the ball with the matches left to thaw
-                v.ice = Sub(v.rt, UIKit.Rounded, new Color(.78f, .92f, 1f, .42f), .92f, 0, 0);
+                // frozen yarn (23/10): an OPAQUE ice block covers the whole spot – ball color and stack number stay hidden until it thaws
+                v.ice = Sub(v.rt, UIKit.Rounded, IceBlock, .98f, 0, 0);
+                var shine = Sub(v.ice.rectTransform, UIKit.Rounded, new Color(1, 1, 1, .55f), .5f, -.12f, .14f); shine.rectTransform.sizeDelta = new Vector2(cs * .42f, cs * .1f); shine.rectTransform.localEulerAngles = new Vector3(0, 0, 35); shine.raycastTarget = false;
                 v.iceCount = UIKit.Txt("IceN", v.ice.transform, "3", Mathf.RoundToInt(cs * .42f), UIKit.Hex("#16457a")); UIKit.Stretch(v.iceCount.rectTransform);
                 var iceOl = v.iceCount.gameObject.AddComponent<Outline>(); iceOl.effectColor = Color.white; iceOl.effectDistance = new Vector2(3, -3);
                 v.ice.gameObject.SetActive(false);
                 cells.Add(v);
             }
+            BuildMech();   // needle box lid + conveyor belt strip (GameController.Mech.cs)
         }
         Image Sub(RectTransform parent, Sprite sp, Color col, float size, float ox, float oy)
         {

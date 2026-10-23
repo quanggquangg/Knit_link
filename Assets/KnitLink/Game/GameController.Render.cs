@@ -23,25 +23,27 @@ namespace KnitLink
                 if (hp > 0 && hp < v.shownHp) StartCoroutine(Wiggle(v.knot.rectTransform));
                 v.knot.gameObject.SetActive(hp > 0); if (hp > 0) v.knot.sprite = UIKit.KnotSprite(hp < 2);
                 v.shownHp = hp;
-                int ice = S.Frozen(t) ? S.ice[t] : 0;
+                int ice = S.Frozen(t) ? S.ice[t] : 0; bool thawed = v.shownIce > 0 && ice == 0;
                 if (v.shownIce > 0 && ice == 0) StartCoroutine(IceBreak(v));
                 else if (ice > 0 && ice < v.shownIce) StartCoroutine(Wiggle(v.ice.rectTransform));
                 v.ice.gameObject.SetActive(ice > 0); if (ice > 0) v.iceCount.text = ice.ToString();
                 v.shownIce = ice;
                 var top = S.Top(t);
-                v.front.gameObject.SetActive(top != null); v.back.gameObject.SetActive(st.Count > 1);
+                // a frozen spot shows only the ice block (no ball color, no stack number)
+                v.front.gameObject.SetActive(top != null && ice == 0); v.back.gameObject.SetActive(st.Count > 1 && ice == 0);
                 if (st.Count > 1) v.backCount.text = (st.Count - 1).ToString();
                 v.shadow.gameObject.SetActive(hp == 0); v.shadow.color = top == null ? new Color(.63f, .5f, .35f, .06f) : new Color(.63f, .5f, .35f, .12f);
                 v.selRing.gameObject.SetActive(sel == t);
                 if (top != null)
                 {
                     v.front.color = UIKit.C(top.c);
-                    bool risen = v.shownTop > 0 && v.shownTop != top.id && v.shownCount > st.Count;
+                    bool risen = (v.shownTop > 0 && v.shownTop != top.id && v.shownCount > st.Count) || (thawed && ice == 0);
                     if (risen) RunPos(v.front.rectTransform, Rise(v.front.rectTransform));
                     v.front.rectTransform.localScale = sel == t ? Vector3.one * 1.1f : Vector3.one;
                 }
                 v.shownTop = top != null ? top.id : -1; v.shownCount = st.Count;
             }
+            RenderMech();
         }
 
         /// <summary>Shelf: always 8 slots (fixed layout); slots at index >= S.cap show a padlock until Extra Shelf.</summary>

@@ -26,9 +26,9 @@ namespace KnitLink
     public static class LevelCheck
     {
         // design rules (decided 16-17/10)
-        public const int MaxW = 6, MaxH = 7, MaxColors = 5;
+        public const int MaxW = 6, MaxH = 7, MaxColors = 6;   // 6 colors since 22/10 (more detailed pictures)
 
-        public static LevelReport Check(LevelDef L, int shelfSlots, int solverBudget = 20000, int botRuns = 200)
+        public static LevelReport Check(LevelDef L, int shelfSlots, int solverBudget = 600000, int botRuns = 200)
         {
             var r = new LevelReport { file = L.file, num = L.num };
             if (L.shape == null || L.board == null || L.baskets == null) { r.errors.Add("level could not be read"); return r; }
@@ -47,7 +47,8 @@ namespace KnitLink
             r.balls = have.Values.Sum(); r.colors = need.Count;
             if (r.colors > MaxColors) r.warnings.Add($"{r.colors} colors; the rule is at most {MaxColors}");
             r.maxDepth = L.board.stacks.Max(s => (s.balls ?? new string[0]).Length);
-            int depthRule = L.num > 0 && L.num < 16 ? 2 : 3;
+            // stack depth (rule 23/10): 3 layers from Lv8 on medium/hard/superhard levels and from Lv16 on every level; else 2
+            int depthRule = L.num <= 0 || L.num >= 16 || (L.num >= 8 && L.kind != "easy") ? 3 : 2;
             if (r.maxDepth > depthRule) r.warnings.Add($"stacks of {r.maxDepth}; the rule is at most {depthRule} at this level number");
             r.frozen = L.board.ice?.Count(x => x > 0) ?? 0; r.tangles = L.board.tangles?.Count(x => x > 0) ?? 0;
             for (int t = 0; t < L.board.stacks.Length; t++)
@@ -60,6 +61,23 @@ namespace KnitLink
                 var b = L.board.stacks[t].balls ?? new string[0];
                 var twice = b.GroupBy(c => c).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
                 if (twice.Count > 0) r.errors.Add($"spot {t + 1} stacks {string.Join(", ", twice)} twice ({string.Join("/", b)}); a stack must not hold the same color twice");
+            }
+            // needle box: 4 single balls under the lid, no tangle/ice there, enough balls of its color outside, not on the belt row
+            if (L.box != null)
+            {
+                foreach (int t in L.box.spots)
+                {
+                    var b = L.board.stacks[t].balls ?? new string[0];
+                    if (b.Length != 1) r.errors.Add($"spot {t + 1} is under the needle box and must hold exactly 1 ball (has {b.Length})");
+                    if ((L.board.tangles != null && L.board.tangles[t] > 0) || (L.board.ice != null && L.board.ice[t] > 0)) r.errors.Add($"spot {t + 1} is under the needle box: no tangle or ice there");
+                }
+                int outside = 0; for (int t = 0; t < L.board.stacks.Length; t++) if (System.Array.IndexOf(L.box.spots, t) < 0) foreach (var c in L.board.stacks[t].balls ?? new string[0]) if (c == L.box.color) outside++;
+                if (outside < L.box.count) r.errors.Add($"needle box needs {L.box.count} {L.box.color} balls matched but only {outside} are outside the box");
+            }
+            if (L.box != null && L.belt != null)
+            {
+                var g = Geometry.FromShape(L.shape);
+                foreach (int t in L.box.spots) if (g.xy[t][1] == L.belt.row) r.errors.Add($"the needle box must not sit on the conveyor belt row (spot {t + 1})");
             }
             var used = new HashSet<int>(L.picture ?? new int[0]);
             for (int i = 0; i < L.baskets.Length; i++) if (!used.Contains(i)) r.warnings.Add($"basket {i + 1} ({L.baskets[i]}) knits no stitch in the picture");

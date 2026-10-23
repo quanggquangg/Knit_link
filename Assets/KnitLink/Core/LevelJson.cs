@@ -6,6 +6,8 @@
 //   "name": "Snowman", "tag": "Frozen yarn", "difficulty": "easy", "intro": "ice", "roll": "none",
 //   "baskets": [ { "color": "C", "part": "snow ground" }, { "color": "B", "part": "sky" } ],
 //   "board":   [ "C   R/B   B*4   _   .",  ... ],
+//   "box":     { "x": 1, "y": 2, "color": "R", "count": 4 },   (optional) needle box over the 2x2 spots whose top-left is board column x, row y (0-based)
+//   "belt":    { "row": 3, "dir": "right" },                      (optional) conveyor belt on board row 3 (0-based), dir right/left
 //   "picture": [ "111111111111111111111111", ... 24 rows of 24 characters ... ]
 // }
 //
@@ -31,8 +33,12 @@ namespace KnitLink
         public BasketJson[] baskets;
         public string[] board;
         public string[] picture;
+        public BoxJson box;     // optional (count 0 = no box)
+        public BeltJson belt;   // optional (dir empty = no belt)
     }
     [Serializable] public class BasketJson { public string color; public string part; }
+    [Serializable] public class BoxJson { public int x, y; public string color; public int count; }
+    [Serializable] public class BeltJson { public int row; public string dir; }
 
     public static class ColorCodes
     {
@@ -50,7 +56,7 @@ namespace KnitLink
     {
         public const int PictureSize = 24;   // picture is PictureSize × PictureSize stitches
         public static readonly string[] Difficulties = { "easy", "medium", "hard", "superhard" };
-        public static readonly string[] Intros = { "", "howto", "shelf", "gaps", "hidden", "tangles", "deep", "ice", "roll" };
+        public static readonly string[] Intros = { "", "howto", "shelf", "gaps", "hidden", "tangles", "deep", "ice", "roll", "box", "belt" };
         public static readonly string[] Rolls = { "none", "down", "up", "left", "right" };
 
         // ------------------------------------------------------------------ read
@@ -80,7 +86,7 @@ namespace KnitLink
             {
                 case "howto": L.intro = "howto"; L.introKey = ""; break;
                 case "shelf": case "gaps": L.intro = "tip"; L.introKey = intro; break;
-                case "hidden": case "tangles": case "deep": case "ice": L.intro = "mech"; L.introKey = intro; break;
+                case "hidden": case "tangles": case "deep": case "ice": case "box": case "belt": L.intro = "mech"; L.introKey = intro; break;
                 case "roll": L.intro = "roll"; L.introKey = L.roll; if (L.roll == "") errors.Add($"{file}: intro 'roll' needs a roll direction"); break;
                 default: L.intro = ""; L.introKey = ""; break;
             }
@@ -101,6 +107,7 @@ namespace KnitLink
             var rows = j.board.Select(r => (r ?? "").Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries)).ToArray();
             int W = rows.Max(r => r.Length), H = rows.Length;
             var shape = new string[H]; var stacks = new List<StackDef>(); var tangles = new List<int>(); var ice = new List<int>();
+            var spotAt = new Dictionary<(int x, int y), int>();   // board column/row -> spot index (for the box)
             for (int y = 0; y < H; y++)
             {
                 var sb = new StringBuilder();
@@ -109,7 +116,7 @@ namespace KnitLink
                     string tok = x < rows[y].Length ? rows[y][x] : ".";
                     string where = $"{file}: board row {y + 1}, column {x + 1} ('{tok}')";
                     if (tok == ".") { sb.Append('.'); continue; }
-                    sb.Append('#');
+                    sb.Append('#'); spotAt[(x, y)] = stacks.Count;
                     if (tok == "_") { stacks.Add(new StackDef { balls = new string[0] }); tangles.Add(0); ice.Add(0); continue; }
                     if (tok[0] == 'X' || tok[0] == 'x')
                     {
@@ -136,6 +143,26 @@ namespace KnitLink
             }
             L.shape = shape;
             L.board = new BoardDef { stacks = stacks.ToArray(), tangles = tangles.ToArray(), ice = ice.ToArray() };
+
+            // needle box (optional): 2x2 spots, top-left at board column x, row y
+            if (j.box != null && j.box.count > 0)
+            {
+                var sp = new List<int>();
+                foreach (var (dx, dy) in new[] { (0, 0), (1, 0), (0, 1), (1, 1) })
+                    if (spotAt.TryGetValue((j.box.x + dx, j.box.y + dy), out int t)) sp.Add(t);
+                    else errors.Add($"{file}: box at column {j.box.x + 1}, row {j.box.y + 1} needs 2x2 spots (column {j.box.x + dx + 1}, row {j.box.y + dy + 1} is a gap or outside)");
+                string code = (j.box.color ?? "").Trim().ToUpper();
+                if (code.Length != 1 || !ColorCodes.ByLetter.TryGetValue(code[0], out var bc)) { errors.Add($"{file}: box color '{j.box.color}' unknown ({ColorCodes.Legend})"); bc = "red"; }
+                if (sp.Count == 4) L.box = new BoxDef { spots = sp.ToArray(), color = bc, count = j.box.count };
+            }
+            // conveyor belt (optional): a full row
+            if (j.belt != null && !string.IsNullOrEmpty(j.belt.dir))
+            {
+                string d = j.belt.dir.Trim().ToLower();
+                if (d != "left" && d != "right") errors.Add($"{file}: belt dir '{j.belt.dir}' must be left or right");
+                if (j.belt.row < 0 || j.belt.row >= H || shape[j.belt.row].Contains('.')) errors.Add($"{file}: belt row {j.belt.row + 1} must be a full row with no gaps");
+                else L.belt = new BeltDef { row = j.belt.row, dir = d == "left" ? -1 : 1 };
+            }
 
             // picture
             L.picture = new int[PictureSize * PictureSize];
@@ -194,6 +221,13 @@ namespace KnitLink
             var sb = new StringBuilder();
             sb.Append("{\n");
             sb.Append($"  \"name\": {Q(L.name)},\n  \"tag\": {Q(L.tag)},\n  \"difficulty\": {Q(L.kind)},\n  \"intro\": {Q(intro)},\n  \"roll\": {Q(string.IsNullOrEmpty(L.roll) ? "none" : L.roll)},\n");
+            if (L.box != null)
+            {   // top-left spot of the box in board column/row
+                var cells = new List<(int x, int y)>(); for (int y = 0; y < L.shape.Length; y++) for (int x = 0; x < L.shape[y].Length; x++) if (L.shape[y][x] != '.') cells.Add((x, y));
+                int bx = L.box.spots.Min(t => cells[t].x), by = L.box.spots.Min(t => cells[t].y);
+                sb.Append($"  \"box\": {{ \"x\": {bx}, \"y\": {by}, \"color\": \"{ColorCodes.Letter(L.box.color)}\", \"count\": {L.box.count} }},\n");
+            }
+            if (L.belt != null) sb.Append($"  \"belt\": {{ \"row\": {L.belt.row}, \"dir\": \"{(L.belt.dir < 0 ? "left" : "right")}\" }},\n");
             sb.Append("  \"baskets\": [\n");
             for (int i = 0; i < L.baskets.Length; i++)
                 sb.Append($"    {{ \"color\": \"{ColorCodes.Letter(L.baskets[i])}\", \"part\": {Q(L.basketNames != null && i < L.basketNames.Length ? L.basketNames[i] : "")} }}{(i < L.baskets.Length - 1 ? "," : "")}\n");
