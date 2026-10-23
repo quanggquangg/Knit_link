@@ -177,6 +177,7 @@ namespace KnitLink
             var rt = Rect(name, parent); var t = rt.gameObject.AddComponent<Text>();
             t.font = Font; t.text = text; t.fontSize = size; t.color = col; t.alignment = anchor; t.fontStyle = style;
             t.raycastTarget = false; t.horizontalOverflow = HorizontalWrapMode.Wrap; t.verticalOverflow = VerticalWrapMode.Overflow;
+            LocText.Attach(t);   // English / Tiếng Việt (Core/Loc.cs)
             return t;
         }
 

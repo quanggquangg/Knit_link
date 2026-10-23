@@ -90,6 +90,7 @@ Mở Console, gõ tag vào ô tìm kiếm để lọc: `[Level]` `[Move]` `[Boos
 | Hướng dẫn, bàn tay, nhận booster mới | `Game/GameController.Tutorial.cs` |
 | Vị trí / kích thước các khối trên màn hình (số liệu trong `Lay`) | `Game/GameController.UI.cs` (`BuildUI`) |
 | Giá, coin thưởng, số revive, level mở khóa | `Resources/GameConfig.asset` (không cần sửa code) |
+| Chữ tiếng Việt sai / thiếu (mục Ngôn ngữ trong Cài đặt) | `Core/Loc.cs` – sửa bảng `VI` (chữ cố định) hoặc `Patterns` (chữ có số, tên). Chữ thiếu dịch vẫn hiện tiếng Anh; trong Editor xem `Loc.Missing`. Cách gắn vào UI: `Game/LocText.cs` |
 
 ## 5. Kiểm tra sau khi sửa
 
@@ -99,4 +100,4 @@ Mở Console, gõ tag vào ô tìm kiếm để lọc: `[Level]` `[Move]` `[Boos
 
 ## 6. Lưu tiến trình (PlayerPrefs)
 
-`kl.level` level đang chơi (số thứ tự) · `kl.coins` · `kl.inv.undo/hint/shelf` · `kl.claimed.*` booster đã mở · `kl.seen.*` hướng dẫn đã xem · `kl.beaten.N`.
+`kl.level` level đang chơi (số thứ tự) · `kl.coins` · `kl.inv.undo/hint/shelf` · `kl.claimed.*` booster đã mở · `kl.seen.*` hướng dẫn đã xem · `kl.beaten.N` · `kl.lang` ngôn ngữ (`en` / `vi`).

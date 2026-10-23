@@ -140,5 +140,31 @@ namespace KnitLink.Tests
             var s = Board("RB", "R B R B", "B R B R");
             Assert.IsNotNull(BoardState.Solve(s, 20000, out _));
         }
+    
+        [Test]
+        public void VietnameseTextsTranslateAndEnglishStays()
+        {
+            try
+            {
+                Loc.Set(Loc.Vi);
+                Assert.AreEqual("Cài đặt", Loc.T("Settings"));
+                Assert.AreEqual("TẠM DỪNG", Loc.T("PAUSED"));                       // pills are upper-case
+                Assert.AreEqual("Màn 12", Loc.T("Level 12"));
+                Assert.AreEqual("KỆ  3/6", Loc.T("SHELF  3/6"));
+                Assert.AreEqual("CÒN 7", Loc.T("7 LEFT"));
+                Assert.AreEqual("MỚI  ·  MÀN 5", Loc.T("NEW  ·  LEVEL 5"));
+                Assert.AreEqual("GIỎ  ·  TIẾP THEO", Loc.T("BASKET  ·  NEXT"));
+                Assert.AreEqual("LĂN XUỐNG ↓", Loc.T("ROLLS DOWN ↓"));
+                Assert.AreEqual("Trái tim hồng ngọc\nđã đan xong!", Loc.T("Ruby Heart\nis knitted!"));
+                Assert.AreEqual("HẾT HOÀN TÁC", Loc.T("OUT OF UNDO"));
+                Assert.AreEqual("Len đóng băng! Tan sau 2 lần nối nữa.", Loc.T("Frozen! It thaws after 2 more matches."));
+                Assert.AreEqual("Màn tiếp theo   +40", Loc.T("Next level   +40"));
+                Assert.AreEqual("+", Loc.T("+"));
+                Assert.AreEqual("zzz unknown", Loc.T("zzz unknown"));                // missing text stays English
+                Loc.Set(Loc.En);
+                Assert.AreEqual("Settings", Loc.T("Settings"));
+            }
+            finally { Loc.Set(Loc.En); }
+        }
     }
 }

@@ -38,8 +38,28 @@ namespace KnitLink
                     var t = UIKit.Txt("Label", row, label, 50, UIKit.Ink, TextAnchor.MiddleLeft); var trt = t.rectTransform; UIKit.Stretch(trt); trt.offsetMin = new Vector2(150, 0);
                     Switch(row, key);
                 }
+                LanguageRow(c);
                 c.BigButton("Continue", close);
             }, close);
+        }
+        /// <summary>Settings row "Language" with 2 buttons. The button names are never translated. Changing it rebuilds the popup.</summary>
+        void LanguageRow(Card c)
+        {
+            var row = c.Row(160, 28); var bg = UIKit.Img("Bg", row, UIKit.Rounded, UIKit.Hex("#efe2c6")); UIKit.Stretch(bg.rectTransform);
+            var t = UIKit.Txt("Label", row, "Language", 50, UIKit.Ink, TextAnchor.MiddleLeft); var trt = t.rectTransform; UIKit.Stretch(trt); trt.offsetMin = new Vector2(40, 0);
+            float x = -38;
+            foreach (var (lang, name, w) in new[] { (Loc.Vi, "Tiếng Việt", 250f), (Loc.En, "English", 210f) })
+            {
+                bool on = Loc.Lang == lang;
+                var b = UIKit.Img("Lang_" + lang, row, UIKit.Rounded, on ? UIKit.Hex("#2f8a3d") : Color.white, true); Pill(b, 94); var brt = b.rectTransform;
+                brt.anchorMin = brt.anchorMax = new Vector2(1, .5f); brt.pivot = new Vector2(1, .5f); brt.sizeDelta = new Vector2(w, 94); brt.anchoredPosition = new Vector2(x, 0); x -= w + 16;
+                var bt = UIKit.Txt("Text", brt, name, 38, on ? Color.white : UIKit.Ink); UIKit.Stretch(bt.rectTransform); LocText.Fixed(bt);
+                b.gameObject.AddComponent<Button>().onClick.AddListener(() =>
+                {
+                    if (Loc.Lang == lang) return;
+                    LocText.SetLang(lang); CloseModal(); OpenSettings();   // rebuild so pill widths fit the new words
+                });
+            }
         }
         void Switch(RectTransform row, string key)
         {

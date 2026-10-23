@@ -43,7 +43,7 @@ namespace KnitLink
         void ResetTutorials()
         {
             foreach (var k in BKeys) { PlayerPrefs.DeleteKey("kl.inv." + k); PlayerPrefs.DeleteKey("kl.claimed." + k); }
-            foreach (var k in new[] { "howto", "tip.shelf", "tip.gaps", "mech.hidden", "mech.tangles", "mech.deep", "mech.ice", "roll.down", "roll.left", "roll.up", "roll.right" }) PlayerPrefs.DeleteKey("kl.seen." + k);
+            foreach (var k in new[] { "howto", "tip.shelf", "tip.gaps", "mech.hidden", "mech.tangles", "mech.deep", "mech.ice", "mech.box", "mech.belt", "roll.down", "roll.left", "roll.up", "roll.right" }) PlayerPrefs.DeleteKey("kl.seen." + k);
             StartLevel(0);
         }
     }

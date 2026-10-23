@@ -18,7 +18,7 @@ namespace KnitLink
         static readonly Dictionary<string, (string title, string text, string hint)> IntroText = new Dictionary<string, (string, string, string)>
         {
             { "hidden",    ("Hidden yarn",      "The number shows how many balls hide below.", "This stack hides more yarn below.") },
-            { "tangles",   ("Tangles",          "Clear 2 balls next to it to untangle.",      "Clear 2 balls next to this tangle.") },
+            { "tangles",   ("Tangles",          "Clear 2 balls next to it to untangle.",      "This tangle blocks yarn your basket needs. Clear 2 balls next to it.") },
             { "deep",      ("Deeper stacks",    "Now up to 2 balls can hide below.",          "2 more balls wait under this one.") },
             { "ice",       ("Frozen yarn",      "Each match melts the ice by 1.",             "Join pairs anywhere to melt this ice.") },
             { "roll.down", ("Yarn rolls down",  "After each match, yarn rolls down.",         "The whole picture rolls down. Watch the board after each move.") },

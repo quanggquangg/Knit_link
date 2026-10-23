@@ -1,7 +1,7 @@
 {
   "name": "Hot Air Balloon",
   "tag": "Hint",
-  "difficulty": "superhard",
+  "difficulty": "hard",
   "intro": "",
   "roll": "none",
   "baskets": [
@@ -17,12 +17,12 @@
     { "color": "C", "part": "clouds" }
   ],
   "board": [
-    "Y    _    _  _    Y      C/B/G",
-    "Y    C/Y  _  C/B  _      _",
-    "_    R    B  _    B      C/B/G",
-    "Y    R    R  G    B/R/G  Y",
-    "B/R  B    B  Y    _      Y",
-    "Y    B/Y  R  Y    B/R/Y  B/R"
+    "B/R    G      G    Y   Y    Y",
+    "Y      C/B/R  _    X2  B    Y",
+    "C/B/R  X2     B/C  Y   C/B  R",
+    "G      X2     Y    Y   B/R  Y",
+    "R      R      B    B   B    Y",
+    "G      Y      R    B   B/Y  _"
   ],
   "picture": [
     "888888888888888888888888",
