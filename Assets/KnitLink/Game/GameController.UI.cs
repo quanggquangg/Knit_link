@@ -47,17 +47,15 @@ namespace KnitLink
             }
             var cgo = new GameObject("GameCanvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
             canvas = cgo.GetComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            var scaler = cgo.GetComponent<CanvasScaler>();
-            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize; scaler.referenceResolution = new Vector2(RefW, RefH); scaler.matchWidthOrHeight = 0;
-            root = (RectTransform)cgo.transform;
-
-            var bg = UIKit.Img("Background", root, null, UIKit.Hex("#2c3b66")); UIKit.Stretch(bg.rectTransform);
+            // full screen (screenRT) + the centred 1080-wide game column (root); scale and notch: GameController.ScreenFit.cs
+            root = BuildScreen(cgo);
+            var bg = UIKit.Img("Background", screenRT, null, UIKit.Hex("#2c3b66")); UIKit.Stretch(bg.rectTransform); bg.transform.SetAsFirstSibling();
 
             // ---- top bar: [Settings][coin spot] ... [Retry] ----
             topRow = UIKit.Rect("TopRow", root); UIKit.TopLeft(topRow, 0, Lay.TopY, 1080, Lay.Btn);
             btnSettings = IconButton("Settings", topRow, UIKit.IconGear, Lay.Side, () => { if (coach == null) OpenSettings(); });
             btnRetry = IconButton("Retry", topRow, UIKit.IconRetry, 1080 - Lay.Side - Lay.Btn, () => { if (coach == null) AskRestart(); });
-            title = UIKit.Txt("Title", root, "Level 1", 83, Pale); UIKit.TopLeft(title.rectTransform, 140, Lay.TitleY, 800, Lay.TitleH);
+            title = UIKit.Display(UIKit.Txt("Title", root, "Level 1", 83, Pale)); UIKit.TopLeft(title.rectTransform, 140, Lay.TitleY, 800, Lay.TitleH);
             title.gameObject.AddComponent<Shadow>().effectColor = new Color(0, 0, 0, .25f);
 
             // ---- picture ----
@@ -124,13 +122,13 @@ namespace KnitLink
                 var icon = BoosterIcon(key, rt); icon.anchoredPosition = new Vector2(0, 22); icon.sizeDelta = new Vector2(78, 78);
                 var badge = UIKit.Img("Badge", rt, UIKit.Rounded, UIKit.Hex("#f08a3c")); Pill(badge, 66);
                 badge.rectTransform.anchorMin = badge.rectTransform.anchorMax = new Vector2(1, 1); badge.rectTransform.sizeDelta = new Vector2(70, 66); badge.rectTransform.anchoredPosition = new Vector2(-6, -8);
-                var ct = UIKit.Txt("Count", badge.transform, "0", 36, Color.white); UIKit.Stretch(ct.rectTransform);
+                var ct = UIKit.Display(UIKit.Txt("Count", badge.transform, "0", 36, Color.white)); UIKit.Stretch(ct.rectTransform);
                 bButtons[key] = b; bLabels[key] = lab; bCounts[key] = ct; bBadges[key] = badge;
             }
 
             fx = UIKit.Rect("FX", root); UIKit.Stretch(fx);
             BuildCoach();
-            modalRT = UIKit.Rect("Modal", root); UIKit.Stretch(modalRT); modalRT.gameObject.SetActive(false);
+            modalRT = UIKit.Rect("Modal", screenRT); UIKit.Stretch(modalRT); modalRT.gameObject.SetActive(false);   // popups + dim cover the whole screen
             var mc = modalRT.gameObject.AddComponent<Canvas>(); mc.overrideSorting = true; mc.sortingOrder = 80; modalRT.gameObject.AddComponent<GraphicRaycaster>();
 
             // ---- coin HUD: above the game AND above every popup ----
@@ -138,8 +136,10 @@ namespace KnitLink
             var hc = hudLayer.gameObject.AddComponent<Canvas>(); hc.overrideSorting = true; hc.sortingOrder = 90;
             BuildCoinHud();
             // rewarded ad stand-in: its own full-screen layer, so the popup under it stays as it is
-            adLayer = UIKit.Rect("AdLayer", root); UIKit.Stretch(adLayer); adLayer.gameObject.SetActive(false);
+            adLayer = UIKit.Rect("AdLayer", screenRT); UIKit.Stretch(adLayer); adLayer.gameObject.SetActive(false);
             var ac = adLayer.gameObject.AddComponent<Canvas>(); ac.overrideSorting = true; ac.sortingOrder = 95; adLayer.gameObject.AddComponent<GraphicRaycaster>();
+            SkinUI();
+            ApplyScreenFit();   // scale, notch and home bar before the first board is laid out (after SkinUI: it sizes the orange bar)   // the artist's art over the code-drawn screen (GameController.Skin.cs); does nothing without the art
         }
 
         // ---------- pieces ----------
@@ -164,7 +164,7 @@ namespace KnitLink
             var coin = UIKit.Img("Coin", coinHud, UIKit.IconCoin, Color.white); var crt = coin.rectTransform;
             crt.anchorMin = crt.anchorMax = new Vector2(0, .5f); crt.sizeDelta = new Vector2(72, 72); crt.anchoredPosition = new Vector2(16 + 36, 0);
             // the number is centred in the space right of the coin; the box never changes size
-            coinText = UIKit.Txt("Value", coinHud, "1,000", 52, UIKit.Hex("#ffe7a3")); var trt = coinText.rectTransform;
+            coinText = UIKit.Display(UIKit.Txt("Value", coinHud, "1,000", 52, UIKit.Hex("#ffe7a3"))); var trt = coinText.rectTransform;
             trt.anchorMin = new Vector2(0, 0); trt.anchorMax = new Vector2(1, 1); trt.offsetMin = new Vector2(96, 0); trt.offsetMax = new Vector2(-24, 0);
             coinText.horizontalOverflow = HorizontalWrapMode.Overflow;
         }

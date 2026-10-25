@@ -73,7 +73,7 @@ namespace KnitLink
             var locks = new List<(Image im, RectTransform rt)>();
             for (int i = Cfg.shelfSlots; i < slotLocks.Count; i++)
             {   // a copy of the padlock flies off; the real one is already hidden by RenderShelf
-                var c = UIKit.Img("LockOff", fx, UIKit.IconLock, UIKit.Hex("#c9a77f")); c.rectTransform.sizeDelta = new Vector2(46, 46); c.rectTransform.position = slotLocks[i].rectTransform.position;
+                var c = SK ? UIKit.SkinImg("LockOff", fx, "Ingame/shelf-hole2") : UIKit.Img("LockOff", fx, UIKit.IconLock, UIKit.Hex("#c9a77f")); c.rectTransform.sizeDelta = SK ? new Vector2(94, 42) : new Vector2(46, 46); c.rectTransform.position = slotLocks[i].rectTransform.position;
                 locks.Add((c, c.rectTransform));
             }
             float k = canvas.scaleFactor; var start = locks.Select(l => l.rt.position).ToList();

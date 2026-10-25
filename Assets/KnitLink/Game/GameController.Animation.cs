@@ -49,14 +49,19 @@ namespace KnitLink
                     if (!origins.TryGetValue(it.id, out var from)) from = cells[it.t].rt.position;
                     float d = delay; delay += leaving.Count > 4 ? .11f : .07f; var ek = e;
                     flights.Add(StartCoroutine(FlyTo(from, () => ek.k == EvKind.Jar ? BasketPos(ek.basketId) : ek.k == EvKind.Shelf ? SlotPos(ek.idx) : shelfRow.position,
-                        it.c, d, .44f, ek.k == EvKind.Jar ? .45f : .8f, () => { if (my == token && ek.k == EvKind.Jar) LandIn(ek.basketId); })));
+                        it.c, d, .44f, ek.k == EvKind.Jar ? .45f : ShelfLandScale, () =>
+                        {
+                            if (my != token) return;
+                            if (ek.k == EvKind.Jar) LandIn(ek.basketId);
+                            else if (ek.k == EvKind.Shelf) SetSlot(ek.idx, it.c);   // the slot shows the ball the moment it lands (no empty frame = no flash)
+                        })));
                 }
                 else if (e.k == EvKind.Absorb)
                 {
-                    int idx = -1; for (int i = 0; i < slots.Count; i++) if (!shelfUsed.Contains(i) && slots[i].sprite == UIKit.Ball && SameColor(slots[i].color, UIKit.C(e.c))) { idx = i; break; }
+                    int idx = -1; for (int i = 0; i < slots.Count; i++) if (!shelfUsed.Contains(i) && slotCol[i] == e.c) { idx = i; break; }
                     if (idx < 0) continue; shelfUsed.Add(idx); float d = delay + .25f; delay += .06f; var ek = e; int sidx = idx;
                     flights.Add(StartCoroutine(FlyTo(slots[sidx].rectTransform.position, () => BasketPos(ek.basketId), e.c, d, .42f, .45f,
-                        () => { if (my == token) LandIn(ek.basketId); }, () => { slots[sidx].sprite = UIKit.Circle; slots[sidx].color = UIKit.Hex("#5c381f"); })));
+                        () => { if (my == token) LandIn(ek.basketId); }, () => SetSlot(sidx, null))));
                 }
                 else if (e.k == EvKind.BagAbsorb)
                 {   // from the bag chip's group of that color; the bag state is already updated, so redrawing removes it from the group
@@ -85,22 +90,24 @@ namespace KnitLink
         void LandIn(string id)
         {
             if (!basketViews.TryGetValue(id, out var v)) return;
-            v.shown = Mathf.Min(4, v.shown + 1); UpdateCount(v); StartCoroutine(Bump(v.body.rectTransform));
+            v.shown = Mathf.Min(4, v.shown + 1); UpdateCount(v); StartCoroutine(Bump(BasketBumpTarget(v)));
             if (v.shown >= 1 && v.fill[v.shown - 1] != null) StartCoroutine(Pop(v.fill[v.shown - 1].rectTransform));   // the new yarn drops into the basket
         }
 
+        /// <summary>Flying ball size at the end of a flight to the shelf = the shelf ball size, so nothing jumps when it lands.</summary>
+        float ShelfLandScale => SK ? SkinLay.SlotBall / (cs * .84f) : Lay.SlotSize / (cs * .84f);
         IEnumerator FlyTo(Vector3 from, System.Func<Vector3> to, string c, float delay, float dur, float scaleTo, System.Action onLand, System.Action onStart = null)
         {
             if (delay > 0) yield return new WaitForSecondsRealtime(delay);
             onStart?.Invoke();
-            var im = UIKit.Img("Fly", fx, UIKit.Ball, UIKit.C(c)); var rt = im.rectTransform;
+            var im = UIKit.YarnImg("Fly", fx, c); im.preserveAspect = true; if (SK) UIKit.DropShadow(im, 16, 12, ShadowNavy); var rt = im.rectTransform;
             float size = cs * .84f; rt.sizeDelta = new Vector2(size, size); rt.position = from;
             for (float t = 0; t < dur; t += Time.unscaledDeltaTime)
             {
                 float p = Mathf.Clamp01(t / dur), e = p < .5f ? 2 * p * p : 1 - Mathf.Pow(-2 * p + 2, 2) / 2;
                 var target = to(); var mid = (from + target) / 2 + Vector3.up * 60 * canvas.scaleFactor;
                 var a = Vector3.Lerp(from, mid, e); var b = Vector3.Lerp(mid, target, e);
-                rt.position = Vector3.Lerp(a, b, e); rt.localScale = Vector3.one * Mathf.Lerp(1, scaleTo, e); rt.localEulerAngles = new Vector3(0, 0, -400 * e);
+                rt.position = Vector3.Lerp(a, b, e); rt.localScale = Vector3.one * Mathf.Lerp(1, scaleTo, e); rt.localEulerAngles = new Vector3(0, 0, -360 * e);   // a whole turn: lands upright like the ball it becomes
                 yield return null;
             }
             Destroy(im.gameObject); onLand?.Invoke();
@@ -115,12 +122,12 @@ namespace KnitLink
                 basketViews.TryGetValue(id, out var v); var col = UIKit.Colors[c];
                 if (v != null)
                 {   // the full basket lifts out of the row towards the picture
-                    v.label.SetActive(false);
+                    if (v.label != null) v.label.SetActive(false);
                     Vector3 p0 = v.rt.position, p1 = picImg.rectTransform.position + new Vector3(170, -60, 0) * canvas.scaleFactor;
                     for (float t = 0; t < .22f; t += Time.unscaledDeltaTime)
                     {
                         if (my != token) yield break; float e = 1 - Mathf.Pow(1 - t / .22f, 3);
-                        v.rt.position = Vector3.Lerp(p0, p1, e); v.rt.localScale = Vector3.one * Mathf.Lerp(1, .62f, e); v.cg.alpha = 1; yield return null;
+                        v.rt.position = Vector3.Lerp(p0, p1, e); v.rt.localScale = Vector3.one * Mathf.Lerp(v.targetScale, .62f * v.targetScale, e); v.cg.alpha = 1; yield return null;
                     }
                 }
                 line = UIKit.Img("Strand", fx, null, col.c); var lrt = line.rectTransform; lrt.pivot = new Vector2(0, .5f);
@@ -235,7 +242,7 @@ namespace KnitLink
         }
         IEnumerator Poof(CellView v)
         {
-            var im = UIKit.Img("Poof", v.rt, UIKit.KnotSprite(true), Color.white); im.rectTransform.sizeDelta = new Vector2(cs * .9f, cs * .9f);
+            var im = UIKit.Img("Poof", v.rt, KnotArt(true), Color.white); im.preserveAspect = true; im.rectTransform.sizeDelta = new Vector2(cs * .9f, cs * .9f);
             for (float t = 0; t < .38f; t += Time.unscaledDeltaTime) { float p = t / .38f; im.rectTransform.localScale = Vector3.one * (1 + .5f * p); im.rectTransform.localEulerAngles = new Vector3(0, 0, 40 * p); im.color = new Color(1, 1, 1, 1 - p); yield return null; }
             Destroy(im.gameObject);
         }
@@ -272,7 +279,7 @@ namespace KnitLink
 
         void DrawLink(List<(int x, int y)> path, string c)
         {
-            if (path == null) return; var col = UIKit.Colors[c];
+            if (path == null) return; if (SkinLink(path, c)) return; var col = UIKit.Colors[c];
             var holder = UIKit.Rect("Link", board); holder.anchorMin = holder.anchorMax = new Vector2(0, 1); holder.pivot = new Vector2(0, 1); holder.sizeDelta = Vector2.zero; holder.anchoredPosition = Vector2.zero;
             float w = Mathf.Max(10, cs * .09f);
             for (int i = 0; i + 1 < path.Count; i++)
@@ -298,7 +305,7 @@ namespace KnitLink
 
         void Toast(string msg)
         {
-            toastText.text = msg; toastRT.gameObject.SetActive(true);
+            toastText.text = msg; toastRT.gameObject.SetActive(true); SkinBubbleFit(toastRT, toastText);
             if (toastCo != null) StopCoroutine(toastCo); toastCo = StartCoroutine(ToastCo());
         }
         IEnumerator ToastCo()

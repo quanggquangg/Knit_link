@@ -51,9 +51,37 @@ namespace KnitLink
             pending--; bagHold = -1;
             if (my != token) yield break;
             RenderShelf();
+            if (toBag.Count > 0) yield return ShelfSlide(toBag.Count);   // the balls left on the shelf slide to the front
+            if (my != token) yield break;
             var rest = ev.Where(e => e.k != EvKind.ToBag).ToList();
             if (rest.Count > 0) yield return Animate(rest, new Dictionary<int, Vector3>(), 0);
             then();
+        }
+
+        /// <summary>After the yarn bag took the first n shelf balls: the other balls slide n slots to the left, one after another,
+        /// with a small hop (0.3 s each, 0.05 s apart). RenderShelf has already put them in their new slots; this only animates.</summary>
+        IEnumerator ShelfSlide(int n)
+        {
+            int my = token; const float Dur = .3f, Step = .05f, Hop = 26;
+            var moving = new List<(RectTransform rt, Vector2 home, Vector2 from, float delay)>();
+            for (int i = 0; i < S.shelf.Count && i + n < slots.Count; i++)
+            {
+                var rt = slots[i].rectTransform; var from = slots[i + n].rectTransform.anchoredPosition;
+                moving.Add((rt, rt.anchoredPosition, from, i * Step)); rt.anchoredPosition = from;
+            }
+            if (moving.Count == 0) yield break;
+            float total = Dur + (moving.Count - 1) * Step;
+            for (float t = 0; t < total; t += Time.unscaledDeltaTime)
+            {
+                if (my != token) break;
+                foreach (var m in moving)
+                {
+                    float p = Mathf.Clamp01((t - m.delay) / Dur), e = KF.EaseOut(p);
+                    m.rt.anchoredPosition = Vector2.Lerp(m.from, m.home, e) + Vector2.up * Hop * Mathf.Sin(p * Mathf.PI);
+                }
+                yield return null;
+            }
+            foreach (var m in moving) if (m.rt != null) m.rt.anchoredPosition = m.home;
         }
     }
 }

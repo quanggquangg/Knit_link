@@ -21,10 +21,10 @@ namespace KnitLink
                 var v = cells[t]; var st = S.stacks[t]; int hp = S.tg[t];
                 if (v.shownHp > 0 && hp == 0) StartCoroutine(Poof(v));
                 if (hp > 0 && hp < v.shownHp) StartCoroutine(Wiggle(v.knot.rectTransform));
-                v.knot.gameObject.SetActive(hp > 0); if (hp > 0) v.knot.sprite = UIKit.KnotSprite(hp < 2);
+                v.knot.gameObject.SetActive(hp > 0); if (hp > 0) v.knot.sprite = KnotArt(hp < 2);
                 v.shownHp = hp;
                 int ice = S.Frozen(t) ? S.ice[t] : 0; bool thawed = v.shownIce > 0 && ice == 0;
-                if (v.shownIce > 0 && ice == 0) StartCoroutine(IceBreak(v));
+                if (v.shownIce > 0 && ice == 0) StartCoroutine(SK ? IceShatter(v) : IceBreak(v));
                 else if (ice > 0 && ice < v.shownIce) StartCoroutine(Wiggle(v.ice.rectTransform));
                 v.ice.gameObject.SetActive(ice > 0); if (ice > 0) v.iceCount.text = ice.ToString();
                 v.shownIce = ice;
@@ -32,11 +32,11 @@ namespace KnitLink
                 // a frozen spot shows only the ice block (no ball color, no stack number)
                 v.front.gameObject.SetActive(top != null && ice == 0); v.back.gameObject.SetActive(st.Count > 1 && ice == 0);
                 if (st.Count > 1) v.backCount.text = (st.Count - 1).ToString();
-                v.shadow.gameObject.SetActive(hp == 0); v.shadow.color = top == null ? new Color(.63f, .5f, .35f, .06f) : new Color(.63f, .5f, .35f, .12f);
-                v.selRing.gameObject.SetActive(sel == t);
+                v.shadow.gameObject.SetActive(hp == 0); if (SK) SkinShadow(v, top == null); else v.shadow.color = top == null ? new Color(.63f, .5f, .35f, .06f) : new Color(.63f, .5f, .35f, .12f);
+                v.selRing.gameObject.SetActive(sel == t); if (SK && sel == t && top != null) SkinSelRing(v, top.c);
                 if (top != null)
                 {
-                    v.front.color = UIKit.C(top.c);
+                    UIKit.Yarn(v.front, top.c);
                     bool risen = (v.shownTop > 0 && v.shownTop != top.id && v.shownCount > st.Count) || (thawed && ice == 0);
                     if (risen) RunPos(v.front.rectTransform, Rise(v.front.rectTransform));
                     v.front.rectTransform.localScale = sel == t ? Vector3.one * 1.1f : Vector3.one;
@@ -53,12 +53,11 @@ namespace KnitLink
             for (int i = 0; i < slots.Count; i++)
             {
                 bool locked = i >= n, has = !locked && i < S.shelf.Count;
-                slots[i].sprite = has ? UIKit.Ball : UIKit.Circle;
-                slots[i].color = has ? UIKit.C(S.shelf[i]) : locked ? UIKit.Hex("#4a2c17") : UIKit.Hex("#5c381f");
-                slotLocks[i].gameObject.SetActive(locked);
+                SetSlotLocked(i, locked); if (!locked) SetSlot(i, has ? S.shelf[i] : null);
             }
-            shelfCount.text = $"SHELF  {S.shelf.Count}/{n}";
-            shelfCount.color = S.shelf.Count >= n - 2 ? UIKit.Hex("#ff9aa8") : Sky;
+            bool warn = S.shelf.Count >= n - 2;
+            if (SK) { }   // new art: no shelf count (removed 25/10)
+            else { shelfCount.text = $"SHELF  {S.shelf.Count}/{n}"; shelfCount.color = warn ? UIKit.Hex("#ff9aa8") : Sky; }
             RenderBag(); RenderCoins();
         }
 
@@ -74,7 +73,19 @@ namespace KnitLink
                 bBadges[k].rectTransform.sizeDelta = new Vector2(lk ? 104 : 70, 66);
                 bCounts[k].fontSize = lk ? 30 : 36;
                 bCounts[k].text = lk ? $"Lv{Unlock[k]}" : n > 0 ? n.ToString() : "+";
+                if (SK) { bButtons[k].GetComponent<Image>().color = lk || used ? new Color(.78f, .78f, .78f, 1) : Color.white; SkinBooster(k, lk, n); }
+                if (coach != null && coach.booster == k) FreeBadge(k);   // first, coached use: "Free" instead of the count
             }
+        }
+
+        /// <summary>Green "Free" pill on a booster button (its first, coached use).</summary>
+        void FreeBadge(string k)
+        {
+            var badge = bBadges[k]; var t = bCounts[k];
+            badge.sprite = UIKit.Rounded; badge.type = Image.Type.Sliced; badge.preserveAspect = false; Pill(badge, 58); badge.color = UIKit.Hex("#4fae5b");
+            t.text = "Free"; t.fontSize = 32; t.color = Color.white; UIKit.Lift(t, 2);
+            float w = Mathf.Max(100, t.cachedTextGeneratorForLayout.GetPreferredWidth(Loc.T("Free"), t.GetGenerationSettings(Vector2.zero)) / t.pixelsPerUnit + 34);
+            badge.rectTransform.sizeDelta = new Vector2(w, 58);
         }
 
         /// <summary>Basket row: a full basket waiting for its last balls, the basket taking yarn, then the next ones as a smaller preview (3 shown at most).</summary>
@@ -97,10 +108,11 @@ namespace KnitLink
             {
                 string id = layout[i]; bool preview = byId.TryGetValue(id, out var j) && S.q.IndexOf(j) >= S.Active;
                 var v = EnsureBasket(id, j != null ? j.c : basketViews.TryGetValue(id, out var ov) ? ov.color : "cream");
-                v.preview = preview; v.targetScale = preview ? .66f : 1f; v.targetAlpha = preview ? .6f : 1f;
+                v.preview = preview; v.targetScale = SK ? (preview ? SkinLay.BasketNext : SkinLay.Basket) : preview ? .66f : 1f; v.targetAlpha = preview && !SK ? .6f : 1f;
+                if (SK) SkinBasketDim(v, preview);   // new art: the next baskets are smaller and darker, not see-through
                 if (v.label != null) v.label.SetActive(!preview);
                 float w = 200 * v.targetScale;
-                x = i == 0 ? 110 : x + prevW / 2 + w / 2 + 18; prevW = w; v.targetX = x;
+                x = i == 0 ? (SK ? w / 2 + 8 : 110) : x + prevW / 2 + w / 2 + (SK ? 6 : 18); prevW = w; v.targetX = x;
                 if (syncCounts && j != null) { v.shown = j.fill; UpdateCount(v); }
             }
             basketsLeft.text = S.q.Count > 0 ? $"{S.q.Count} LEFT" : "ALL KNITTED";
@@ -112,6 +124,7 @@ namespace KnitLink
             v = new BasketView { color = c };
             v.rt = UIKit.Rect("Basket_" + id, basketRow); v.rt.anchorMin = v.rt.anchorMax = new Vector2(0, .5f); v.rt.sizeDelta = new Vector2(200, 200);
             v.cg = v.rt.gameObject.AddComponent<CanvasGroup>(); v.cg.alpha = 0;
+            if (SK && SkinBasket(v, c)) { v.targetX = 640; v.rt.anchoredPosition = new Vector2(660, SkinLay.BasketBottomY); v.rt.localScale = Vector3.one * .4f; basketViews[id] = v; return v; }
             var handle = UIKit.Img("Handle", v.rt, UIKit.Ring, UIKit.Colors[c].d); handle.rectTransform.sizeDelta = new Vector2(130, 130); handle.rectTransform.anchoredPosition = new Vector2(0, 30);
             // yarn inside the basket: sits in the mouth, its lower half hidden by the rim/body drawn after it.
             // Pile order: left, right, middle, top (BasketFillPos). One ball per yarn that landed.

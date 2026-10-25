@@ -239,6 +239,9 @@ namespace KnitLink
             (R(@"^(Undo|Hint|Extra Shelf) unlocks at level (\d+)\.$"), m => $"{B(m)} mở khóa ở màn {m.Groups[2]}."),
             (R(@"^Tap (Undo|Hint|Extra Shelf) to use it\. This first one is free!$"), m => $"Chạm {B(m)} để dùng. Lần đầu miễn phí!"),
             (R(@"^(Undo|Hint|Extra Shelf) used for free\. You still have (\d+)\.$"), m => $"Đã dùng {B(m)} miễn phí. Bạn còn {m.Groups[2]}."),
+            (R(@"^Your last move is back!$"), m => "Đã lấy lại nước vừa đi!"),
+            (R(@"^Link the glowing pair!$"), m => "Nối cặp đang sáng nhé!"),
+            (R(@"^2 more shelf slots for this picture!$"), m => "Kệ có thêm 2 ô cho tranh này!"),
         };
         static Regex R(string p) => new Regex(p, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
         static string B(Match m) { foreach (var kv in Boost) if (string.Equals(kv.Key, m.Groups[1].Value, System.StringComparison.OrdinalIgnoreCase)) return kv.Value; return m.Groups[1].Value; }

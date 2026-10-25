@@ -12,7 +12,7 @@ namespace KnitLink
     public class LocText : MonoBehaviour
     {
         public const string PrefKey = "kl.lang";
-        Text t; string src, shown; int ver = -1;
+        Text t; string src, shown; int ver = -1; bool upper;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         static void LoadLang() => Loc.Set(PlayerPrefs.GetString(PrefKey, Loc.En));
@@ -29,10 +29,12 @@ namespace KnitLink
         {
             var l = text.gameObject.AddComponent<LocText>(); l.t = text; l.Apply(text.text);
         }
+        /// <summary>Show this Text in CAPITALS (after translating), e.g. the picture name under "Level N".</summary>
+        public static void Upper(Text text) { var l = text.GetComponent<LocText>(); if (l != null) { l.upper = true; l.Apply(text.text != l.shown ? text.text : l.src); } }
         /// <summary>This Text is never translated.</summary>
         public static void Fixed(Text text) { var l = text.GetComponent<LocText>(); if (l != null) { text.text = l.src ?? text.text; l.enabled = false; Destroy(l); } }
 
-        void Apply(string english) { src = english; ver = Loc.Version; shown = Loc.T(src); if (!ReferenceEquals(t.text, shown)) t.text = shown; }
+        void Apply(string english) { src = english; ver = Loc.Version; shown = upper ? Loc.T(src).ToUpperInvariant() : Loc.T(src); if (!ReferenceEquals(t.text, shown)) t.text = shown; }
 
         void LateUpdate()
         {

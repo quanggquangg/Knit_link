@@ -14,7 +14,7 @@ namespace KnitLink
         {
             get
             {
-                if (font == null) font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+                if (font == null) font = BodyFont ?? Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");   // Nunito ExtraBold (UIKit.Fonts.cs)
                 return font;
             }
         }
@@ -58,6 +58,13 @@ namespace KnitLink
         {
             float d = Vector2.Distance(new Vector2(u, v), new Vector2(.5f, .5f));
             return new Color(1, 1, 1, Edge(d, .49f, .012f));
+        });
+
+        /// <summary>Soft round glow: white in the middle, fading to nothing at 70% of the radius (web demo: radial-gradient puff).</summary>
+        public static Sprite SoftGlow => Make("softglow", 128, (u, v) =>
+        {
+            float d = Vector2.Distance(new Vector2(u, v), new Vector2(.5f, .5f)) * 2;
+            return new Color(1, 1, 1, Mathf.Clamp01(1 - d / .7f) * .95f);
         });
 
         public static Sprite Ring => Make("ring", 128, (u, v) =>
@@ -175,7 +182,8 @@ namespace KnitLink
         public static Text Txt(string name, Transform parent, string text, int size, Color col, TextAnchor anchor = TextAnchor.MiddleCenter, FontStyle style = FontStyle.Bold)
         {
             var rt = Rect(name, parent); var t = rt.gameObject.AddComponent<Text>();
-            t.font = Font; t.text = text; t.fontSize = size; t.color = col; t.alignment = anchor; t.fontStyle = style;
+            t.font = Font; t.text = text; t.fontSize = size; t.color = col; t.alignment = anchor;
+            t.fontStyle = style == FontStyle.Bold && BodyFont != null ? FontStyle.Normal : style;   // the font file is already extra bold
             t.raycastTarget = false; t.horizontalOverflow = HorizontalWrapMode.Wrap; t.verticalOverflow = VerticalWrapMode.Overflow;
             LocText.Attach(t);   // English / Tiếng Việt (Core/Loc.cs)
             return t;

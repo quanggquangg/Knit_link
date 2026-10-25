@@ -38,15 +38,19 @@ namespace KnitLink
             {
                 c.Pill($"New  ·  Level {L.num}", PillStyle.Blue); c.Title(info.title);
                 var box = c.Row(526, 38); var bg = UIKit.Img("DemoBox", box, UIKit.Rounded, UIKit.Hex("#efe2c6")); UIKit.Stretch(bg.rectTransform);
+                if (c.skin) { var ib = Skin.Sliced("Tutorial/pop-tutorial-inner2", 70, 70, 70, 70); if (ib != null) { bg.sprite = ib; bg.type = Image.Type.Sliced; bg.color = Color.white; } else bg.color = SkinPop.Peach; }
                 box.gameObject.AddComponent<RectMask2D>();
-                BuildIntroDemo(kind, box);
+                // the demos are laid out for an 820 px wide box; the artist's narrower panel shows them a little smaller
+                var stage = box;
+                if (c.skin) { stage = UIKit.Rect("Demo", box); stage.sizeDelta = new Vector2(820, 526); stage.localScale = Vector3.one * (Card.Inner / 820f); }
+                BuildIntroDemo(kind, stage);
                 c.Lead(info.text);
                 c.BigButton("Got it", () =>
                 {
                     CloseModal(); var target = IntroTarget(kind);
                     if (target != null) StartCoroutine(Delay(.25f, () => { if (target != null) { StartCoroutine(PulseRing(target, 3f)); HintBubble(target, info.hint, 3f); } }));
-                });
-            });
+                }, w: c.skin ? SkinPop.SmallBtnW : Card.Inner);
+            }, art: SkinPop.Tutorial);
         }
         RectTransform IntroTarget(string kind)
         {
@@ -64,10 +68,11 @@ namespace KnitLink
         // ---------- demos ----------
         Image DemoBall(RectTransform parent, string c, float size, Vector2 pos)
         {
-            var b = UIKit.Img("Ball", parent, UIKit.Ball, UIKit.C(c)); b.rectTransform.sizeDelta = new Vector2(size, size); b.rectTransform.anchoredPosition = pos; return b;
+            var b = UIKit.YarnImg("Ball", parent, c); b.preserveAspect = true; b.rectTransform.sizeDelta = new Vector2(size, size); b.rectTransform.anchoredPosition = pos; return b;
         }
         Image DemoBadge(RectTransform parent, string n, Vector2 pos)
         {
+            if (SK) return SkinDemoBadge(parent, n, pos);
             var b = UIKit.Img("Badge", parent, UIKit.Circle, UIKit.Ink); b.rectTransform.sizeDelta = new Vector2(83, 83); b.rectTransform.anchoredPosition = pos;
             var i = UIKit.Img("In", b.transform, UIKit.Circle, UIKit.Hex("#fffaf0")); i.rectTransform.sizeDelta = new Vector2(69, 69);
             var t = UIKit.Txt("N", b.transform, n, 44, UIKit.Ink); UIKit.Stretch(t.rectTransform); return b;
@@ -110,8 +115,8 @@ namespace KnitLink
                 case "tangles":
                 {   // 3.6 s: a neighbour leaves → outer layer comes off; the other leaves → the knot is gone
                     var n1 = DemoBall(box, "green", 172, new Vector2(-243, 0)); var n2 = DemoBall(box, "yellow", 172, new Vector2(243, 0));
-                    var l1 = UIKit.Img("Inner", box, UIKit.KnotSprite(true), Color.white); l1.rectTransform.sizeDelta = new Vector2(170, 170);
-                    var l2 = UIKit.Img("Outer", box, UIKit.KnotSprite(false), Color.white); l2.rectTransform.sizeDelta = new Vector2(238, 238);
+                    var l1 = UIKit.Img("Inner", box, KnotArt(true), Color.white);  l1.rectTransform.sizeDelta = new Vector2(170, 170);
+                    var l2 = UIKit.Img("Outer", box, KnotArt(false), Color.white); l2.rectTransform.sizeDelta = new Vector2(238, 238);
                     LoopAnim.Add(box.gameObject, 3.6f, p =>
                     {
                         Alpha(n1, KF.At(p, .18f, 1, .26f, 0, .92f, 0, 1, 1)); n1.rectTransform.localScale = Vector3.one * KF.At(p, .18f, 1, .26f, .4f, .92f, .4f, 1, 1);
@@ -125,7 +130,8 @@ namespace KnitLink
                 {   // 3.8 s: any match (pulse) counts the ice 3 → 2 → 1, then it breaks into 4 pieces
                     var g = UIKit.Rect("Frozen", box); g.anchoredPosition = new Vector2(-150, 0); g.sizeDelta = new Vector2(288, 288);
                     DemoBall(g, "blue", 233, Vector2.zero);
-                    var ice = UIKit.Img("Ice", g, UIKit.Rounded, IceBlock); UIKit.Stretch(ice.rectTransform);   // opaque: the ball shows only when it breaks
+                    var ice = UIKit.Img("Ice", g, UIKit.Rounded, IceBlock); UIKit.Stretch(ice.rectTransform);
+                    var iceArt = SK ? Skin.Get("Ingame/Asset 2/ice") : null; if (iceArt != null) { ice.sprite = iceArt; ice.type = Image.Type.Simple; ice.color = Color.white; }   // opaque: the ball shows only when it breaks
                     var n = UIKit.Txt("N", ice.transform, "3", 120, UIKit.Hex("#16457a")); UIKit.Stretch(n.rectTransform);
                     var shards = new List<Image>(); Vector2[] dirs = { new Vector2(-1, 1), new Vector2(1, 1), new Vector2(-1, -1), new Vector2(1, -1) };
                     foreach (var d in dirs) { var s = UIKit.Img("Shard", g, UIKit.Rounded, new Color(.8f, .93f, 1f, 0)); s.rectTransform.sizeDelta = new Vector2(122, 122); s.rectTransform.anchoredPosition = d * 61; shards.Add(s); }
@@ -161,6 +167,8 @@ namespace KnitLink
             var label = UIKit.Img("Label", lid.transform, UIKit.Rounded, LidLabel); Pill(label, 96); label.rectTransform.sizeDelta = new Vector2(190, 96);
             DemoBall(label.rectTransform, "red", 66, new Vector2(-44, 0));
             var n = UIKit.Txt("N", label.transform, "4", 64, UIKit.Hex("#fffaf0")); n.rectTransform.sizeDelta = new Vector2(90, 90); n.rectTransform.anchoredPosition = new Vector2(42, 0);
+            var boxArt = SK ? Skin.Get("Ingame/Asset 2/needle-box") : null;
+            if (boxArt != null) { lid.sprite = boxArt; lid.type = Image.Type.Simple; lid.color = Color.white; panel.gameObject.SetActive(false); label.color = new Color(1, 1, 1, 0); n.color = SkinBrown; }
             var pulse = UIKit.Rect("AnyMatch", box); pulse.anchoredPosition = new Vector2(200, 20); pulse.sizeDelta = new Vector2(200, 120);
             var pa = DemoBall(pulse, "red", 78, new Vector2(-42, 10)); var pb = DemoBall(pulse, "red", 78, new Vector2(42, 10));
             var lab = UIKit.Txt("Label", box, "any match", 33, CardSoft); lab.rectTransform.anchoredPosition = new Vector2(200, -60); lab.rectTransform.sizeDelta = new Vector2(240, 50);

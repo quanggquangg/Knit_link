@@ -52,6 +52,7 @@ namespace KnitLink
                 a.rectTransform.localEulerAngles = new Vector3(0, 0, S.belt.dir > 0 ? 90 : -90);   // the arrow sprite points down
             }
             int dir = S.belt.dir;
+            if (SkinBelt(strip, arrows, dir)) return;
             LoopAnim.Add(beltStrip.gameObject, MechT.BeltLoop, p => { if (arrows != null) arrows.anchoredPosition = new Vector2(dir * gap * p - gap, 0); });
         }
 
@@ -67,10 +68,11 @@ namespace KnitLink
             var panel = UIKit.Img("Stitches", boxLid, UIKit.Rounded, LidPanel); UIKit.Stretch(panel.rectTransform, 16); panel.rectTransform.offsetMin = new Vector2(16, 22); panel.raycastTarget = false;
             var label = UIKit.Img("Label", boxLid, UIKit.Rounded, LidLabel); label.raycastTarget = false; Pill(label, cs * .62f);
             label.rectTransform.sizeDelta = new Vector2(cs * 1.3f, cs * .62f);
-            var ball = UIKit.Img("Ball", label.transform, UIKit.Ball, UIKit.C(S.box.c)); ball.raycastTarget = false;
+            var ball = UIKit.YarnImg("Ball", label.transform, S.box.c); ball.preserveAspect = true; ball.raycastTarget = false;
             ball.rectTransform.sizeDelta = new Vector2(cs * .46f, cs * .46f); ball.rectTransform.anchoredPosition = new Vector2(-cs * .3f, 0);
             boxCountText = UIKit.Txt("Count", label.transform, S.box.n.ToString(), Mathf.RoundToInt(cs * .42f), UIKit.Hex("#fffaf0"));
             boxCountText.rectTransform.sizeDelta = new Vector2(cs * .6f, cs * .6f); boxCountText.rectTransform.anchoredPosition = new Vector2(cs * .28f, 0);
+            if (SK) SkinBoxLid(lid, shade, panel, label, ball);
             boxLid.gameObject.AddComponent<Button>().onClick.AddListener(BoxNudge);   // the lid takes the taps of the 4 spots under it
             shownBox = S.box.n;
         }

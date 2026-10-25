@@ -91,6 +91,17 @@ namespace KnitLink
             StartCoroutine(Bump((RectTransform)bButtons[k].transform, 1.16f));
             StartCoroutine(CoachBoosterWhenReady(k, token));
         }
+        /// <summary>Short line after the free first use: what the booster just did (user 25/10: clearer than "used for free"; no count –
+        /// during this first use the button shows "Free" instead of the number, see FreeBadge).</summary>
+        string BoosterDoneText(string k)
+        {
+            switch (k)
+            {
+                case "undo": return "Your last move is back!";
+                case "hint": return "Link the glowing pair!";
+                default:     return "2 more shelf slots for this picture!";
+            }
+        }
         IEnumerator CoachBoosterWhenReady(string k, int my)
         {
             yield return new WaitForSecondsRealtime(.4f);
@@ -102,7 +113,7 @@ namespace KnitLink
             }
             if (my != token || S == null || S.Won || S.over || modalRT.gameObject.activeSelf) yield break;
             {
-                StartCoach(new Coach { booster = k, text = $"Tap {BName[k]} to use it. This first one is free!", done = () => StartCoroutine(Delay(.3f, () => HintBubble((RectTransform)bButtons[k].transform, $"{BName[k]} used for free. You still have {Inv(k)}.", 2.6f))) });
+                StartCoach(new Coach { booster = k, text = $"Tap {BName[k]} to use it. This first one is free!", done = () => StartCoroutine(Delay(.3f, () => HintBubble((RectTransform)bButtons[k].transform, BoosterDoneText(k), 3f))) });
             }
         }
 
@@ -127,7 +138,7 @@ namespace KnitLink
         // ---------- coach overlay ----------
         void BuildCoach()
         {
-            coachRT = UIKit.Rect("Coach", root); UIKit.Stretch(coachRT);
+            coachRT = UIKit.Rect("Coach", screenRT); UIKit.Stretch(coachRT);
             var cv = coachRT.gameObject.AddComponent<Canvas>(); cv.overrideSorting = true; cv.sortingOrder = 50; coachRT.gameObject.AddComponent<GraphicRaycaster>();
             var dim = UIKit.Img("Dim", coachRT, null, new Color(.035f, .05f, .13f, .78f), true); UIKit.Stretch(dim.rectTransform);
             var hb = UIKit.Rect("Top", coachRT); UIKit.Stretch(hb);
@@ -135,20 +146,20 @@ namespace KnitLink
             var bub = UIKit.Img("Bubble", hb, UIKit.Rounded, UIKit.Hex("#fffaf0")); bubbleRT = bub.rectTransform;
             bubbleRT.anchorMin = bubbleRT.anchorMax = new Vector2(.5f, .5f); bubbleRT.sizeDelta = new Vector2(940, 150);
             var outl = bub.gameObject.AddComponent<Outline>(); outl.effectColor = UIKit.Honey; outl.effectDistance = new Vector2(4, -4);
-            bubbleText = UIKit.Txt("Text", bubbleRT, "", 38, UIKit.Ink); UIKit.Stretch(bubbleText.rectTransform, 20);
+            bubbleText = UIKit.Txt("Text", bubbleRT, "", 38, UIKit.Ink); UIKit.Stretch(bubbleText.rectTransform, 20); SkinBubble(bub, bubbleText);
             var hand = UIKit.Img("Hand", hb, UIKit.Hand, Color.white); handRT = hand.rectTransform;
             handRT.sizeDelta = new Vector2(170, 170); handRT.pivot = new Vector2(.44f, .93f);
             coachRT.gameObject.SetActive(false);
         }
         void StartCoach(Coach c)
         {
-            EndCoach(); coach = c; foreach (Transform t in fx) if (t.name == "HintBubble") Destroy(t.gameObject); coachRT.gameObject.SetActive(true); coachRT.SetAsLastSibling(); modalRT.SetAsLastSibling();
+            EndCoach(); coach = c; foreach (Transform t in fx) if (t.name == "HintBubble") Destroy(t.gameObject); coachRT.gameObject.SetActive(true); coachRT.SetAsLastSibling(); modalRT.SetAsLastSibling(); RenderBoosters();   // the coached booster shows "Free"
             var targets = c.booster != null ? new List<GameObject> { bButtons[c.booster].gameObject } : c.trays.Select(t => cells[t].rt.gameObject).ToList();
             foreach (var go in targets)
             {   // lift the targets above the dim layer; they stay clickable
                 var cvs = go.AddComponent<Canvas>(); cvs.overrideSorting = true; cvs.sortingOrder = 60; go.AddComponent<GraphicRaycaster>(); lifted.Add(go);
             }
-            bubbleText.text = c.text; CoachHand();
+            bubbleText.text = c.text; SkinBubbleFit(bubbleRT, bubbleText); CoachHand();
             // bubble above the targets when they sit low on the screen, below them otherwise
             float midY = targets.Average(go => go.transform.position.y), rootMid = root.position.y;
             float tY = targets.Max(go => go.transform.position.y), bY = targets.Min(go => go.transform.position.y);
@@ -168,6 +179,7 @@ namespace KnitLink
             foreach (var go in lifted) if (go != null) { DestroyImmediate(go.GetComponent<GraphicRaycaster>()); DestroyImmediate(go.GetComponent<Canvas>()); }
             lifted.Clear();
             if (coachRT != null) coachRT.gameObject.SetActive(false);
+            if (S != null && bBadges.Count > 0) RenderBoosters();   // "Free" goes, the normal count comes back
         }
 
         // soft hint: a short bubble near the target, nothing is blocked
@@ -177,7 +189,7 @@ namespace KnitLink
             var bub = UIKit.Img("HintBubble", fx, UIKit.Rounded, UIKit.Hex("#fffaf0")); var rt = bub.rectTransform;
             rt.sizeDelta = new Vector2(940, 140);
             var outl = bub.gameObject.AddComponent<Outline>(); outl.effectColor = UIKit.Honey; outl.effectDistance = new Vector2(4, -4);
-            var t = UIKit.Txt("Text", rt, text, 34, UIKit.Ink); UIKit.Stretch(t.rectTransform, 18);
+            var t = UIKit.Txt("Text", rt, text, 34, UIKit.Ink); UIKit.Stretch(t.rectTransform, 18); SkinBubble(bub, t); SkinBubbleFit(rt, t);
             float y = target.position.y; bool low = y < root.position.y;
             rt.position = new Vector3(root.position.x, y + (low ? 190 : -200) * canvas.scaleFactor, 0);
             StartCoroutine(FadeAway(rt, secs));
@@ -193,15 +205,23 @@ namespace KnitLink
         IEnumerator PulseRing(RectTransform target, float secs)
         {
             if (target == null) yield break;
-            var im = UIKit.Img("Pulse", fx, UIKit.Ring, UIKit.Hex("#ffe39a")); var rt = im.rectTransform;
+            // new art: a strong orange ring + soft orange glow, readable on the cream board (the pale yellow one was hard to see – user 25/10)
+            Color ringCol = SK ? UIKit.Hex("#ff7a2e") : new Color(1f, .89f, .6f);
+            Image glow = null;
+            if (SK) { glow = UIKit.Img("PulseGlow", target, UIKit.SoftGlow, new Color(1f, .55f, .2f, .5f)); glow.transform.SetAsFirstSibling(); glow.raycastTarget = false; }   // behind the ball, not over it
+            var im = UIKit.Img("Pulse", fx, UIKit.Ring, ringCol); var rt = im.rectTransform;
             float size = Mathf.Max(target.rect.width, target.rect.height) * 1.15f; rt.sizeDelta = new Vector2(size, size);
+            if (glow != null) glow.rectTransform.sizeDelta = new Vector2(size * 1.5f, size * 1.5f);
             for (float t = 0; t < secs; t += Time.unscaledDeltaTime)
             {
                 if (rt == null || target == null) break;
-                rt.position = target.position; float p = Mathf.Repeat(t / .9f, 1f);
-                rt.localScale = Vector3.one * (1 + .12f * Mathf.Sin(p * Mathf.PI * 2)); im.color = new Color(1f, .89f, .6f, .55f + .45f * Mathf.Sin(p * Mathf.PI)); yield return null;
+                rt.position = target.position; float p = Mathf.Repeat(t / .9f, 1f), beat = Mathf.Sin(p * Mathf.PI);
+                rt.localScale = Vector3.one * (1 + .12f * Mathf.Sin(p * Mathf.PI * 2)); im.color = new Color(ringCol.r, ringCol.g, ringCol.b, .65f + .35f * beat);
+                if (glow != null) glow.color = new Color(1f, .55f, .2f, .35f + .35f * beat);
+                yield return null;
             }
             if (rt != null) Destroy(rt.gameObject);
+            if (glow != null) Destroy(glow.gameObject);
         }
     }
 }

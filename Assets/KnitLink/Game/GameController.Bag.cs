@@ -40,16 +40,17 @@ namespace KnitLink
             for (int i = 0; i < groups.Count; i++)
             {
                 var g = groups[i];
-                var ball = UIKit.Img("Group_" + g.c, bagGroupsRT, UIKit.Ball, UIKit.C(g.c)); var rt = ball.rectTransform;
+                if (SK && SkinBagGroup(g.c, g.n, i)) continue;   // new art: color dot + white number (GameController.Skin.cs)
+                var ball = UIKit.YarnImg("Group_" + g.c, bagGroupsRT, g.c); ball.preserveAspect = true; var rt = ball.rectTransform;
                 rt.anchorMin = rt.anchorMax = new Vector2(0, .5f); rt.sizeDelta = new Vector2(ChipBall, ChipBall); rt.anchoredPosition = new Vector2(ChipBall / 2 + i * (ChipBall + ChipGap), 0);
                 var badge = UIKit.Img("N", rt, UIKit.Rounded, UIKit.Hex("#6c4aa3")); Pill(badge, 42); var brt = badge.rectTransform;
                 brt.anchorMin = brt.anchorMax = new Vector2(1, 0); brt.sizeDelta = new Vector2(42, 42); brt.anchoredPosition = new Vector2(6, 2);
                 var inner = UIKit.Img("Bg", brt, UIKit.Rounded, UIKit.Hex("#fffaf0")); UIKit.Stretch(inner.rectTransform, 4); Pill(inner, 34);
-                var t = UIKit.Txt("T", brt, g.n.ToString(), 28, UIKit.Ink); UIKit.Stretch(t.rectTransform);
+                var t = UIKit.Txt("T", brt, g.n.ToString(), 28, UIKit.Ink); UIKit.Stretch(t.rectTransform); if (SK) UIKit.Lift(t, 2);
             }
             // the chip grows with the number of colors (the only element allowed to flex), anchored right, max ~610
-            float w = 12 + ChipIcon + 22 + groups.Count * (ChipBall + ChipGap) + 24;
-            bagRT.sizeDelta = new Vector2(Mathf.Min(610, w), ChipH);
+            float w = SK ? SkinBagChipWidth(groups.Count) : 12 + ChipIcon + 22 + groups.Count * (ChipBall + ChipGap) + 24;
+            bagRT.sizeDelta = new Vector2(Mathf.Min(610, w), SK ? SkinLay.BagChipH : ChipH);
         }
         /// <summary>Where a ball of color c sits in the chip (or the chip's bag icon).</summary>
         Vector3 BagTarget(string c)
@@ -72,6 +73,12 @@ namespace KnitLink
             var front = UIKit.Img("Front", bag, UIKit.BagFront, Color.white); UIKit.Stretch(front.rectTransform);
             if (firstTime) bagRT.GetComponent<CanvasGroup>().alpha = 0;
             var mouth = new Vector2(0, BW * (.5f - .33f));   // bag-local position of the mouth centre
+            Sprite bag1 = SK ? Skin.Get("Ingame/bag1") : null, bagLip = SK ? Skin.BagFront() : null;
+            if (bag1 != null && bagLip != null)
+            {   // artist's bag: bag1 behind the balls, its cut-out front over them, mouth at 15 % of the height (stays open when full)
+                float bh = BW * bag1.rect.height / bag1.rect.width; bag.sizeDelta = new Vector2(BW, bh);
+                back.sprite = bag1; front.sprite = bagLip; mouth = new Vector2(0, bh * (.5f - .15f));
+            }
             float t0 = Time.unscaledTime;
             // 1) pop + dim
             for (float t = 0; t < BagT.Pop; t += Time.unscaledDeltaTime)
@@ -85,6 +92,7 @@ namespace KnitLink
             var runs = new List<Coroutine>();
             for (int i = 0; i < items.Count; i++) runs.Add(StartCoroutine(BagBall(items[i], i, bag, balls, front, mouth, my)));
             foreach (var r in runs) yield return r;
+            // the bag keeps its open mouth (bag1 + front) when full: switching to bag2 looked like the top of the bag was cut off (user 25/10)
             if (my == token) yield return new WaitForSecondsRealtime(BagT.Hold);
             // 3) shrink and fly to the chip
             if (my == token)
@@ -110,8 +118,8 @@ namespace KnitLink
             yield return new WaitForSecondsRealtime(BagT.First + i * BagT.Step);
             if (my != token) yield break;
             float k = canvas.scaleFactor, sz = Lay.SlotSize;
-            if (it.slot != null) { it.slot.sprite = UIKit.Circle; it.slot.color = UIKit.Hex("#5c381f"); }
-            var im = UIKit.Img("Ball", balls, UIKit.Ball, UIKit.C(it.c)); var rt = im.rectTransform; rt.sizeDelta = new Vector2(sz, sz);
+            if (it.slot != null) SetSlot(slots.IndexOf(it.slot), null);
+            var im = UIKit.YarnImg("Ball", balls, it.c); im.preserveAspect = true; var rt = im.rectTransform; rt.sizeDelta = new Vector2(sz, sz);
             rt.SetParent(bag.parent, true); rt.SetAsLastSibling();   // above the bag while flying
             rt.position = it.from;
             Vector3 start = it.from, lift = start + Vector3.up * 33 * k;
@@ -128,7 +136,8 @@ namespace KnitLink
             for (float t = 0; t < BagT.Drop; t += Time.unscaledDeltaTime) { if (my != token) yield break; float p = t / BagT.Drop; rt.position = Vector3.Lerp(a, b, p * p); rt.localScale = Vector3.one * Mathf.Lerp(.8f, .62f, p); yield return null; }
             Destroy(im.gameObject);
             StartCoroutine(Squash(bag));
-            var puff = UIKit.Img("Puff", bag, UIKit.Circle, new Color(1, 1, 1, .9f)); puff.rectTransform.sizeDelta = new Vector2(220, 80); puff.rectTransform.anchoredPosition = mouth;
+            // soft glow, not a solid white oval (a solid one looked like a hole in the bag's mouth – fixed 25/10)
+            var puff = UIKit.Img("Puff", bag, UIKit.SoftGlow, new Color(1, 1, 1, .9f)); puff.rectTransform.sizeDelta = new Vector2(220, 96); puff.rectTransform.anchoredPosition = mouth;
             StartCoroutine(PuffFade(puff));
         }
         IEnumerator Squash(RectTransform rt)

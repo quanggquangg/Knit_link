@@ -125,6 +125,7 @@ namespace KnitLink
 
         void Update()
         {
+            CheckScreenFit();   // window / safe area changed: rescale and lay the board out again (GameController.ScreenFit.cs)
             // baskets glide to their slots and grow / shrink between "taking yarn" and "preview"
             float k = 1 - Mathf.Exp(-14 * Time.unscaledDeltaTime);
             foreach (var kv in basketViews)

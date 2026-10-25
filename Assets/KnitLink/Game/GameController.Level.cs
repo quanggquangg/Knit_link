@@ -25,6 +25,7 @@ namespace KnitLink
             // "Level N" only – no subtitle under it (decided 20/10); hard levels get a pink title
             title.text = $"Level {L.num}";
             title.color = L.kind == "hard" || L.kind == "superhard" ? UIKit.Hex("#ff9aa8") : Pale;
+            SkinLevelTitle();   // new art: white title, "Hard" chip, picture name in yellow capitals (GameController.Skin.cs)
             rollChip.transform.parent.gameObject.SetActive(!string.IsNullOrEmpty(S.roll));
             rollChip.text = string.IsNullOrEmpty(S.roll) ? "" : $"ROLLS {S.roll.ToUpper()} {Arrow(S.roll)}";
             toastRT.gameObject.SetActive(false); CloseModal();
@@ -40,10 +41,12 @@ namespace KnitLink
             foreach (var c in cells) Destroy(c.rt.gameObject); cells.Clear(); posAnims.Clear();
             Canvas.ForceUpdateCanvases();
             var g = S.geo; var area = boardPanel.rect;
-            float aw = area.width - 60, ah = area.height - 90;
+            // free space between the yarn and the board edge: the same on all 4 sides in the new art (SkinLay.BoardPad)
+            float padX = SK ? 2 * SkinLay.BoardPad : 60, padY = SK ? 2 * SkinLay.BoardPad : 90;
+            float aw = area.width - padX, ah = area.height - padY;
             cs = Mathf.Min(aw / (g.W + GAP * (g.W - 1)), ah / (g.H * CELL_H + GAP * (g.H - 1)), 220);
             float stepX = cs * (1 + GAP), stepY = cs * CELL_H + cs * GAP;
-            board.sizeDelta = new Vector2(g.W * stepX - cs * GAP, g.H * stepY - cs * GAP); board.anchoredPosition = new Vector2(0, -15);
+            board.sizeDelta = new Vector2(g.W * stepX - cs * GAP, g.H * stepY - cs * GAP); board.anchoredPosition = new Vector2(0, SK ? 0 : -15);   // new art: exactly centred
             for (int t = 0; t < g.Count; t++)
             {
                 int tt = t; var v = new CellView();
@@ -65,6 +68,7 @@ namespace KnitLink
                 v.iceCount = UIKit.Txt("IceN", v.ice.transform, "3", Mathf.RoundToInt(cs * .42f), UIKit.Hex("#16457a")); UIKit.Stretch(v.iceCount.rectTransform);
                 var iceOl = v.iceCount.gameObject.AddComponent<Outline>(); iceOl.effectColor = Color.white; iceOl.effectDistance = new Vector2(3, -3);
                 v.ice.gameObject.SetActive(false);
+                SkinCell(v);
                 cells.Add(v);
             }
             BuildMech();   // needle box lid + conveyor belt strip (GameController.Mech.cs)

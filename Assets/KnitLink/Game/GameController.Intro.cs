@@ -23,11 +23,13 @@ namespace KnitLink
             Slide(btnSettings.transform as RectTransform, 0, .32f, new Vector2(0, 66)); Slide(btnRetry.transform as RectTransform, 0, .32f, new Vector2(0, 66));
             if (firstIntro) { Slide(coinHud, 0, .32f, new Vector2(0, 66)); firstIntro = false; }
             PopIn(title.rectTransform, IntroT.Title, .42f);
+            if (subtitle != null) PopIn(subtitle.rectTransform, IntroT.Title + .06f, .42f);   // new art: picture name under the title
             PopIn(picFrame, IntroT.Pic, .36f);
             Slide(basketsHead, IntroT.Pic, .3f, new Vector2(0, 30));
             Slide(shelfHead, IntroT.Shelf, .32f, new Vector2(0, -72)); Slide(shelfRow, IntroT.Shelf + .02f, .32f, new Vector2(0, -72));
             for (int i = 0; i < slots.Count; i++) PopIn(slots[i].rectTransform, IntroT.Shelf + .1f + i * .03f, .26f);
             PopIn(boardPanel, IntroT.Board, .36f, .94f);
+            if (skinBar != null) Slide(skinBar, IntroT.Boosters - .06f, .36f, new Vector2(0, -120));   // new art: orange bottom bar
             for (int i = 0; i < BKeys.Length; i++) Slide((RectTransform)bButtons[BKeys[i]].transform, IntroT.Boosters + i * .07f, .36f, new Vector2(0, -72));
             var g = S.geo;
             for (int t = 0; t < cells.Count; t++)

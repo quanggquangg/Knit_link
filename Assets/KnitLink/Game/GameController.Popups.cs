@@ -31,6 +31,11 @@ namespace KnitLink
             OpenCard(c =>
             {
                 c.Pill("Paused"); c.Title("Settings");
+                if (c.skin)
+                {   // new art (mockup setting.png): rows on inner-box, switches with ON/OFF, Continue + Retry side by side
+                    SkinSettingRow(c, "sound", "Sound", "Setting/icon-sound"); SkinSettingRow(c, "music", "Music", "Setting/icon-music"); SkinSettingRow(c, "vibe", "Vibration", "Setting/icon-haptic");
+                    LanguageRow(c); SkinSettingButtons(c); return;
+                }
                 foreach (var (key, label, icon) in new[] { ("sound", "Sound", UIKit.IconSpeaker), ("music", "Music", UIKit.IconNote), ("vibe", "Vibration", UIKit.IconPhone) })
                 {
                     var row = c.Row(160, 28); var bg = UIKit.Img("Bg", row, UIKit.Rounded, UIKit.Hex("#efe2c6")); UIKit.Stretch(bg.rectTransform);
@@ -45,15 +50,16 @@ namespace KnitLink
         /// <summary>Settings row "Language" with 2 buttons. The button names are never translated. Changing it rebuilds the popup.</summary>
         void LanguageRow(Card c)
         {
-            var row = c.Row(160, 28); var bg = UIKit.Img("Bg", row, UIKit.Rounded, UIKit.Hex("#efe2c6")); UIKit.Stretch(bg.rectTransform);
-            var t = UIKit.Txt("Label", row, "Language", 50, UIKit.Ink, TextAnchor.MiddleLeft); var trt = t.rectTransform; UIKit.Stretch(trt); trt.offsetMin = new Vector2(40, 0);
+            var row = c.Row(c.skin ? 150 : 160, c.skin ? 24 : 28); var bg = UIKit.Img("Bg", row, UIKit.Rounded, UIKit.Hex("#efe2c6")); UIKit.Stretch(bg.rectTransform);
+            if (c.skin) { bg.sprite = Skin.Sliced("Setting/inner-box", 40, 40, 40, 40); bg.type = Image.Type.Sliced; bg.color = Color.white; }
+            var t = UIKit.Txt("Label", row, "Language", c.skin ? 44 : 50, c.skin ? SkinPop.RowText : UIKit.Ink, TextAnchor.MiddleLeft); var trt = t.rectTransform; UIKit.Stretch(trt); trt.offsetMin = new Vector2(40, 0);
             float x = -38;
-            foreach (var (lang, name, w) in new[] { (Loc.Vi, "Tiếng Việt", 250f), (Loc.En, "English", 210f) })
+            foreach (var (lang, name, w) in c.skin ? new[] { (Loc.Vi, "Tiếng Việt", 200f), (Loc.En, "English", 168f) } : new[] { (Loc.Vi, "Tiếng Việt", 250f), (Loc.En, "English", 210f) })
             {
                 bool on = Loc.Lang == lang;
-                var b = UIKit.Img("Lang_" + lang, row, UIKit.Rounded, on ? UIKit.Hex("#2f8a3d") : Color.white, true); Pill(b, 94); var brt = b.rectTransform;
-                brt.anchorMin = brt.anchorMax = new Vector2(1, .5f); brt.pivot = new Vector2(1, .5f); brt.sizeDelta = new Vector2(w, 94); brt.anchoredPosition = new Vector2(x, 0); x -= w + 16;
-                var bt = UIKit.Txt("Text", brt, name, 38, on ? Color.white : UIKit.Ink); UIKit.Stretch(bt.rectTransform); LocText.Fixed(bt);
+                var b = UIKit.Img("Lang_" + lang, row, UIKit.Rounded, on ? UIKit.Hex("#2f8a3d") : c.skin ? UIKit.Hex("#f1c79c") : Color.white, true); float bh = c.skin ? 80 : 94; Pill(b, bh); var brt = b.rectTransform;
+                brt.anchorMin = brt.anchorMax = new Vector2(1, .5f); brt.pivot = new Vector2(1, .5f); brt.sizeDelta = new Vector2(w, bh); brt.anchoredPosition = new Vector2(x, 0); x -= w + 16;
+                var bt = UIKit.Txt("Text", brt, name, c.skin ? 32 : 38, on ? Color.white : UIKit.Ink); UIKit.Stretch(bt.rectTransform); LocText.Fixed(bt);
                 b.gameObject.AddComponent<Button>().onClick.AddListener(() =>
                 {
                     if (Loc.Lang == lang) return;
@@ -87,26 +93,27 @@ namespace KnitLink
             OpenCard(c =>
             {
                 c.Pill("Out of " + BName[k]); c.Title(BName[k]);
-                c.BigIcon(ic => { var b = BoosterIcon(k, ic); b.sizeDelta = new Vector2(230, 230); Badge(ic, "×1"); });
+                c.BigIcon(ic => { if (c.skin) SkinBoosterBig(k, ic); else { var b = BoosterIcon(k, ic); b.sizeDelta = new Vector2(230, 230); } Badge(ic, "×1"); });
                 c.Lead(BDesc[k]);
                 c.Choice(price, () => { if (Coins < price) return; Coins -= price; RenderCoins(); KLog.Info("Booster", $"Bought {k} for {price} coins"); give(); }, () => PlayAd(give));
-            }, CloseModal);
+            }, CloseModal, art: SkinPop.Booster);
         }
         /// <summary>Orange count badge on the bottom-right of a big icon ("×1", "×2").</summary>
         void Badge(RectTransform icon, string text)
         {
+            if (SK) { SkinBadge(icon, text); return; }
             var b = UIKit.Img("Badge", icon, UIKit.Rounded, UIKit.Hex("#f08a3c")); Pill(b, 76); var rt = b.rectTransform;
             rt.anchorMin = rt.anchorMax = new Vector2(1, 0); rt.pivot = new Vector2(1, 0); rt.sizeDelta = new Vector2(124, 76); rt.anchoredPosition = new Vector2(0, 16);
-            var t = UIKit.Txt("T", rt, text, 52, Color.white); UIKit.Stretch(t.rectTransform);
+            var t = UIKit.Display(UIKit.Txt("T", rt, text, 52, Color.white)); UIKit.Stretch(t.rectTransform);
         }
         void BoosterIntro(string k)
         {
             OpenCard(c =>
             {
                 c.Pill("New booster", PillStyle.Blue); c.Title(BName[k]);
-                c.BigIcon(ic => { var b = BoosterIcon(k, ic); b.sizeDelta = new Vector2(230, 230); Badge(ic, "×" + Cfg.boostersOnUnlock); });
+                c.BigIcon(ic => { if (c.skin) SkinBoosterBig(k, ic); else { var b = BoosterIcon(k, ic); b.sizeDelta = new Vector2(230, 230); } Badge(ic, "×" + Cfg.boostersOnUnlock); });
                 c.Lead(BDesc[k]); c.BigButton("Claim", () => ClaimBooster(k));
-            });
+            }, art: SkinPop.Booster);
         }
         /// <summary>Stand-in for a rewarded ad: a full-screen layer for a moment, then the reward.</summary>
         void PlayAd(System.Action reward)
@@ -152,20 +159,21 @@ namespace KnitLink
                 c.BigIcon(ic => { if (stuck) OpenWayIcon(ic); else BagLoopIcon(ic, S.shelf.Take(Cfg.reviveBagSize).ToList()); });
                 c.Lead(stuck ? "Take 2 pairs for your basket." : first ? $"Move {Cfg.reviveBagSize} shelf balls into a yarn bag." : $"Move {Cfg.reviveBagSize} more shelf balls into the yarn bag.");
                 c.Progress(KnittedPercent());
-                c.Choice(price, () => { if (Coins < price) return; Coins -= price; RenderCoins(); go(); }, adOk ? (System.Action)(() => PlayAd(go)) : null);
+                c.Choice(price, () => { if (Coins < price) return; Coins -= price; RenderCoins(); go(); }, adOk ? (System.Action)(() => PlayAd(go)) : null, c.skin ? "Continue" : null);   // mockup: "Continue" above the price
                 c.Link("Give up and try again", () => { CloseModal(); StartLevel(levelIndex); });
-            });
+            }, art: SkinPop.Revive);
         }
         void ShowLose(bool stuck)
         {
             OpenCard(c =>
             {
                 c.Pill($"Level {L.num} failed", PillStyle.Red); c.Title(stuck ? "Out of moves" : "Out of space");
+                if (c.skin) SkinLosePicture(c); else {
                 var row = c.Row(290, 38, 330); var ball = UIKit.Img("Yarn", row, UIKit.Ball, UIKit.C("red")); ball.rectTransform.sizeDelta = new Vector2(250, 250); ball.rectTransform.anchoredPosition = new Vector2(-10, 10);
-                var strand = UIKit.Img("Strand", row, UIKit.Ring, UIKit.C("red")); strand.rectTransform.sizeDelta = new Vector2(90, 90); strand.rectTransform.anchoredPosition = new Vector2(120, -80);
+                var strand = UIKit.Img("Strand", row, UIKit.Ring, UIKit.C("red")); strand.rectTransform.sizeDelta = new Vector2(90, 90); strand.rectTransform.anchoredPosition = new Vector2(120, -80); }
                 c.Progress(KnittedPercent()); c.Lead("So close! Give this picture another go.", 46);
-                c.BigButton("Try again", () => { CloseModal(); StartLevel(levelIndex); });
-            });
+                var again = c.BigButton("Try again", () => { CloseModal(); StartLevel(levelIndex); }); if (c.skin) SkinRecolor(again, "btn-blue");   // demo: blue
+            }, art: SkinPop.Lose);
         }
         int KnittedPercent()
         {
@@ -175,8 +183,8 @@ namespace KnitLink
         }
         void OpenWayIcon(RectTransform ic)
         {
-            var a = UIKit.Img("A", ic, UIKit.Ball, UIKit.C("red")); a.rectTransform.sizeDelta = new Vector2(100, 100); a.rectTransform.anchoredPosition = new Vector2(-80, -70);
-            var b = UIKit.Img("B", ic, UIKit.Ball, UIKit.C("red")); b.rectTransform.sizeDelta = new Vector2(100, 100); b.rectTransform.anchoredPosition = new Vector2(80, 70);
+            var a = UIKit.YarnImg("A", ic, "red"); a.preserveAspect = true; a.rectTransform.sizeDelta = new Vector2(100, 100); a.rectTransform.anchoredPosition = new Vector2(-80, -70);
+            var b = UIKit.YarnImg("B", ic, "red"); b.preserveAspect = true; b.rectTransform.sizeDelta = new Vector2(100, 100); b.rectTransform.anchoredPosition = new Vector2(80, 70);
             for (int i = 1; i < 6; i++)
             {
                 var d = UIKit.Img("Dot", ic, UIKit.Circle, UIKit.C("green")); d.rectTransform.sizeDelta = new Vector2(18, 18);
@@ -192,10 +200,11 @@ namespace KnitLink
             var ballsRT = UIKit.Rect("Balls", holder); UIKit.Stretch(ballsRT);
             var front = UIKit.Img("Front", holder, UIKit.BagFront, Color.white); UIKit.Stretch(front.rectTransform);
             Vector2 mouth = new Vector2(0, BW * (.5f - .3f));
+            if (SK) SkinBagLoop(holder, back, front, ref mouth, BW);
             Vector2[] starts = { new Vector2(-178, 0), new Vector2(-139, 72), new Vector2(139, 72), new Vector2(178, 0) };
             for (int i = 0; i < cols.Count && i < 4; i++)
             {
-                var b = UIKit.Img("Ball" + i, ballsRT, UIKit.Ball, UIKit.C(cols[i])); var rt = b.rectTransform; rt.sizeDelta = new Vector2(72, 72);
+                var b = UIKit.YarnImg("Ball" + i, ballsRT, cols[i]); b.preserveAspect = true; var rt = b.rectTransform; rt.sizeDelta = new Vector2(72, 72);
                 var s = starts[i] + mouth;
                 LoopAnim.Add(b.gameObject, 3.2f, p =>
                 {   // 0–6% appear · 28% top of arc · 44% at the mouth · 52% inside · then hidden until the loop restarts
@@ -206,11 +215,13 @@ namespace KnitLink
                     b.color = new Color(b.color.r, b.color.g, b.color.b, p < .06f ? p / .06f : p <= .52f ? 1 : 0);
                 }, i * .35f);
             }
-            front.rectTransform.pivot = new Vector2(.5f, .05f);   // squash from the bottom (stretched rect: changing the pivot does not move it)
-            LoopAnim.Add(front.gameObject, 3.2f, p =>
+            // back, balls and front squash TOGETHER (squashing only the front showed the back's rim under it – fixed 25/10)
+            var squash = UIKit.Rect("Squash", holder); UIKit.Stretch(squash); squash.pivot = new Vector2(.5f, .05f);   // from the bottom (stretched rect: the pivot does not move it)
+            back.transform.SetParent(squash, false); ballsRT.SetParent(squash, false); front.transform.SetParent(squash, false);
+            LoopAnim.Add(squash.gameObject, 3.2f, p =>
             {   // a small squash each time a ball lands (balls land at 52% + 0.35 s steps)
                 float bump = 0; for (int i = 0; i < 4; i++) { float c = .52f + i * .35f / 3.2f, d = Mathf.Abs(p - c - .02f); if (d < .04f) bump = Mathf.Max(bump, 1 - d / .04f); }
-                front.rectTransform.localScale = new Vector3(1 + .08f * bump, 1 - .1f * bump, 1);
+                squash.localScale = new Vector3(1 + .08f * bump, 1 - .1f * bump, 1);
             });
         }
 
@@ -219,7 +230,7 @@ namespace KnitLink
         int winReward; bool winCollecting;
         void ShowWin()
         {
-            if (winShown) return; winShown = true; EndCoach();
+            if (winShown) return; winShown = true; EndCoach(); Confetti();
             int reward = Cfg.WinCoins(L.kind); winReward = reward; winCollecting = false;
             KLog.Info("Win", $"Level {L.num} ({L.file}) won in {moves} moves, reward {reward} coins (not added until the player picks)");
             MarkBeaten(levelIndex);
@@ -227,13 +238,14 @@ namespace KnitLink
             Button nextBtn = null; RectTransform nextRow = null;
             OpenCard(c =>
             {
+                if (c.skin) { SkinWin(c, reward, next, ref nextBtn, ref nextRow); return; }
                 c.Pill($"Level {L.num} complete", PillStyle.Green); c.Title($"{L.name}\nis knitted!", 2);
                 var row = c.Row(470, 34, 470); var well = UIKit.Img("Frame", row, UIKit.Rounded, UIKit.Hex("#efe2c6")); UIKit.Stretch(well.rectTransform);
                 var tex = PictureRenderer.NewTexture(); PictureRenderer.Draw(tex, L, k => true, null);
                 var pic = UIKit.Rect("Picture", row).gameObject.AddComponent<RawImage>(); pic.texture = tex; UIKit.Stretch(pic.rectTransform, 26);
                 var coinRow = c.Row(110, 30, 300); var cbg = UIKit.Img("Bg", coinRow, UIKit.Rounded, UIKit.Hex("#fff6dc")); UIKit.Stretch(cbg.rectTransform);
                 var ci = UIKit.Img("Coin", coinRow, UIKit.IconCoin, Color.white); ci.rectTransform.sizeDelta = new Vector2(84, 84); ci.rectTransform.anchoredPosition = new Vector2(-64, 0);
-                var ct = UIKit.Txt("Amount", coinRow, $"+{reward}", 76, UIKit.Hex("#7a4b0e")); ct.rectTransform.sizeDelta = new Vector2(180, 100); ct.rectTransform.anchoredPosition = new Vector2(50, 0);
+                var ct = UIKit.Display(UIKit.Txt("Amount", coinRow, $"+{reward}", 76, UIKit.Hex("#7a4b0e"))); ct.rectTransform.sizeDelta = new Vector2(180, 100); ct.rectTransform.anchoredPosition = new Vector2(50, 0);
                 c.Note($"{moves} moves · shelf peak {peak}/{S.cap}", CardSoft);
                 var claimRow = c.Row(184, 38);
                 var claim = FlatButton(claimRow, "", UIKit.Hex("#2f8a3d"), UIKit.Hex("#1d5e28"), Color.white, 64, null);
@@ -243,7 +255,7 @@ namespace KnitLink
                 nextRow = c.Row(144, 26);
                 nextBtn = FlatButton(nextRow, $"Next level   +{reward}", UIKit.Hex("#efe3c9"), PaleShadow, UIKit.Ink, 54, () => { if (!winCollecting) StartCoroutine(CollectWin(reward, nextBtn.transform.position, next)); });
                 nextRow.gameObject.AddComponent<CanvasGroup>().alpha = 0; nextBtn.interactable = false;
-            });
+            }, art: SkinPop.Win);
             int my = token;
             StartCoroutine(DelayUnscaled(WinNextDelay, () =>
             {
@@ -254,7 +266,7 @@ namespace KnitLink
         void ClaimLabel(RectTransform face, int amount)
         {
             var ad = UIKit.Img("Ad", face, UIKit.IconAd, Color.white); ad.rectTransform.sizeDelta = new Vector2(72, 72); ad.rectTransform.anchoredPosition = new Vector2(-250, 0);
-            var t = UIKit.Txt("T", face, "Claim ×3", 66, Color.white); t.rectTransform.sizeDelta = new Vector2(330, 100); t.rectTransform.anchoredPosition = new Vector2(-30, 0);
+            var t = UIKit.Display(UIKit.Txt("T", face, "Claim ×3", 66, Color.white)); t.rectTransform.sizeDelta = new Vector2(330, 100); t.rectTransform.anchoredPosition = new Vector2(-30, 0);
             var chip = UIKit.Img("Amount", face, UIKit.Rounded, UIKit.Hex("#1d5e28")); Pill(chip, 84); chip.rectTransform.sizeDelta = new Vector2(190, 84); chip.rectTransform.anchoredPosition = new Vector2(230, 0);
             var ci = UIKit.Img("Coin", chip.transform, UIKit.IconCoin, Color.white); ci.rectTransform.anchorMin = ci.rectTransform.anchorMax = new Vector2(0, .5f); ci.rectTransform.sizeDelta = new Vector2(50, 50); ci.rectTransform.anchoredPosition = new Vector2(44, 0);
             var at = UIKit.Txt("N", chip.transform, amount.ToString(), 54, Color.white); UIKit.Stretch(at.rectTransform); at.rectTransform.offsetMin = new Vector2(64, 0);

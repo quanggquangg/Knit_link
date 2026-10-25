@@ -88,7 +88,8 @@ Mở Console, gõ tag vào ô tìm kiếm để lọc: `[Level]` `[Move]` `[Boos
 | Hiệu ứng "thở", vòng lặp hoạt ảnh, keyframe | `Game/UIAnim.cs` (`Breath`, `LoopAnim`, `KF`) |
 | Thắng / lưu tiến trình / tự đan nốt / hết nước | `Game/GameController.Flow.cs` |
 | Hướng dẫn, bàn tay, nhận booster mới | `Game/GameController.Tutorial.cs` |
-| Vị trí / kích thước các khối trên màn hình (số liệu trong `Lay`) | `Game/GameController.UI.cs` (`BuildUI`) |
+| Màn hình khác tỉ lệ (16:9, 20:9, iPad…), tai thỏ: cột game rộng 1080 luôn nằm giữa, cao tối thiểu 2100 (`Fit`); nền, thanh cam, popup, pháo giấy phủ cả màn hình. Thử: chọn các cỡ "KL …" trong Game view | `Game/GameController.ScreenFit.cs` |
+| Vị trí / kích thước các khối trên màn hình (số liệu trong `Lay`; với art mới xem thêm `SkinLay`, mục 7) | `Game/GameController.UI.cs` (`BuildUI`) |
 | Giá, coin thưởng, số revive, level mở khóa | `Resources/GameConfig.asset` (không cần sửa code) |
 | Chữ tiếng Việt sai / thiếu (mục Ngôn ngữ trong Cài đặt) | `Core/Loc.cs` – sửa bảng `VI` (chữ cố định) hoặc `Patterns` (chữ có số, tên). Chữ thiếu dịch vẫn hiện tiếng Anh; trong Editor xem `Loc.Missing`. Cách gắn vào UI: `Game/LocText.cs` |
 
@@ -101,3 +102,20 @@ Mở Console, gõ tag vào ô tìm kiếm để lọc: `[Level]` `[Move]` `[Boos
 ## 6. Lưu tiến trình (PlayerPrefs)
 
 `kl.level` level đang chơi (số thứ tự) · `kl.coins` · `kl.inv.undo/hint/shelf` · `kl.claimed.*` booster đã mở · `kl.seen.*` hướng dẫn đã xem · `kl.beaten.N` · `kl.lang` ngôn ngữ (`en` / `vi`).
+
+## 7. Art của họa sĩ (Skin) – thêm 25/10
+
+- Ảnh để nguyên tên và thư mục của họa sĩ trong `Resources/Skin/UI - Knit Link/` (Ingame, Setting, Booster, Win-Lose-Revive, Tutorial…). **Không đổi tên file.** Muốn thay ảnh: chép đè file cùng tên.
+- Import tự đặt (readable, không nén, không mipmap): `Editor/SkinImporter.cs`. Menu **Knit Link › Reimport Skin Art** nếu ảnh hiển thị sai.
+- Thư mục `Demo` (ảnh mockup) chỉ để tham khảo: **chuyển ra ngoài `Resources`**, nếu không nó vào bản build.
+- Có art → game dùng art. Thiếu file nào → chỗ đó tự vẽ bằng code như cũ. Tắt hẳn art để so sánh: `PlayerPrefs` `kl.skin` = `old`.
+- Ghép màu: teal = `cyan`, cream = `white`. Cuộn len, giỏ, sợi dây nối lấy theo màu (`red-ball`, `red-basket1/2`, `red-wire1`).
+
+| Muốn sửa | File |
+|---|---|
+| Đọc ảnh, cắt cuộn len, làm sợi dây nối (đoạn thẳng lặp + góc rẽ), miệng túi, tia sáng | `Game/Skin.cs` |
+| Màn chơi: nền, ô xu, bánh răng, khung tranh, giỏ (vị trí 4 cuộn trong giỏ), kệ có lỗ, số 2/6, túi len, bàn, 3 nút booster trên thanh cam; ô bàn (bóng lỗ, số ẩn, rối, băng vỡ 5 mảnh); dây nối; hộp kim chỉ; băng chuyền | `Game/GameController.Skin.cs` (số liệu trong `SkinLay`) |
+| Popup: khung 9-slice, tiêu đề trên ruy băng, nút xanh/vàng/xanh dương/xám, nút X, thanh tiến độ, Settings (công tắc ON/OFF, Continue + Retry), booster to, Completed (ruy băng, ánh sáng, tranh, xu to, Claim ×3, Next) | `Game/GameController.SkinPopup.cs` (số liệu trong `SkinPop`) |
+| Pháo giấy + tiếng pháo khi thắng | `Game/GameController.Confetti.cs` |
+| Cuộn len theo màu ở mọi chỗ (`UIKit.Yarn`, `YarnImg`), chữ viền | `Game/UIKit.Yarn.cs` |
+| Font (giống demo): Nunito ExtraBold cho chữ thường, Fredoka Bold cho tiêu đề / nút / số to (`UIKit.Display(text)`). Fredoka không có dấu tiếng Việt → khi chọn Tiếng Việt tự dùng Nunito Black. File font: `Resources/Fonts` (giấy phép OFL kèm theo, dùng miễn phí cho game thương mại) | `Game/UIKit.Fonts.cs` |
