@@ -201,7 +201,11 @@ namespace KnitLink
             {
                 v.back.sprite = badge; v.back.color = Color.white; v.back.rectTransform.sizeDelta = new Vector2(cs * .4f, cs * .4f); v.back.rectTransform.anchoredPosition = new Vector2(cs * .32f, cs * .32f);
                 foreach (Transform c in v.back.transform) if (c.GetComponent<Text>() == null) c.gameObject.SetActive(false);
-                v.backCount.color = UIKit.Hex("#3c4a7a"); v.backCount.fontSize = Mathf.RoundToInt(cs * .26f); UIKit.Lift(v.backCount, cs * .015f, cs * .012f);   // the badge art's face sits a little right of centre
+                // stack number (user 26/10): bold display font (Fredoka Bold) and one size bigger (.26 -> .30 of the spot);
+                // overflow on: the glyph is never cut by the small badge box
+                UIKit.Display(v.backCount); v.backCount.color = UIKit.Hex("#3c4a7a"); v.backCount.fontSize = Mathf.RoundToInt(cs * .30f);
+                v.backCount.horizontalOverflow = HorizontalWrapMode.Overflow; v.backCount.verticalOverflow = VerticalWrapMode.Overflow;
+                UIKit.Lift(v.backCount, cs * .015f, cs * .012f);   // the badge art's face sits a little right of centre
             }
             var tg = Skin.Get("Ingame/Asset 2/tangle2"); if (tg != null) { v.knot.sprite = tg; v.knot.preserveAspect = true; v.knot.rectTransform.sizeDelta = new Vector2(cs * .96f, cs * .96f); UIKit.DropShadow(v.knot, cs * .05f, cs * .035f, ShadowWarm); }
             var ice = Skin.Get("Ingame/Asset 2/ice");
