@@ -80,7 +80,7 @@ namespace KnitLink
             draw();
             track.gameObject.AddComponent<Button>().onClick.AddListener(() =>
             {
-                PlayerPrefs.SetInt("kl.set." + key, SettingOn(key) ? 0 : 1); ApplySettings(); if (key == "vibe") Buzz(); draw();
+                PlayerPrefs.SetInt("kl.set." + key, SettingOn(key) ? 0 : 1); ApplySettings(); Sfx.Play(Sfx.Tap); if (key == "vibe") Buzz(); draw();
                 KLog.Info("Config", $"Setting {key} = {(SettingOn(key) ? "on" : "off")}");
             });
         }
@@ -144,7 +144,7 @@ namespace KnitLink
         }
 
         // ---------- revive / lose ----------
-        void ShowFail() { EndCoach(); Buzz(); ShowRevive(false); }
+        void ShowFail() { EndCoach(); Buzz(); Sfx.Play(Sfx.Fail); ShowRevive(false); }
         void ShowStuck() { EndCoach(); ShowRevive(true); }
         void ShowRevive(bool stuck)
         {
@@ -230,7 +230,7 @@ namespace KnitLink
         int winReward; bool winCollecting;
         void ShowWin()
         {
-            if (winShown) return; winShown = true; EndCoach(); Confetti();
+            if (winShown) return; winShown = true; EndCoach(); Confetti(); Sfx.Play(Sfx.Win);
             int reward = Cfg.WinCoins(L.kind); winReward = reward; winCollecting = false;
             KLog.Info("Win", $"Level {L.num} ({L.file}) won in {moves} moves, reward {reward} coins (not added until the player picks)");
             MarkBeaten(levelIndex);
@@ -279,7 +279,7 @@ namespace KnitLink
             int my = token, start = Coins; Coins = start + amount; float k = canvas.scaleFactor;
             KLog.Info("Win", $"+{amount} coins collected");
             const int n = 8; int landed = 0; var to = coinHud.GetChild(1).position;
-            for (int i = 0; i < n; i++) StartCoroutine(FlyCoin(from + new Vector3((i % 2 == 0 ? -1 : 1) * i * 10 * k, 0, 0), to, i * .07f, () => { landed++; RenderCoins(start + amount * landed / n); StartCoroutine(Bump(coinHud, 1.08f)); }));
+            for (int i = 0; i < n; i++) StartCoroutine(FlyCoin(from + new Vector3((i % 2 == 0 ? -1 : 1) * i * 10 * k, 0, 0), to, i * .07f, () => { landed++; Sfx.Play(Sfx.Clink); RenderCoins(start + amount * landed / n); StartCoroutine(Bump(coinHud, 1.08f)); }));
             while (landed < n) { if (my != token) yield break; yield return null; }
             RenderCoins(); yield return new WaitForSecondsRealtime(.45f);
             if (my != token) yield break;

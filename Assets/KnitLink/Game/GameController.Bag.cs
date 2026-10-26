@@ -81,6 +81,7 @@ namespace KnitLink
             }
             float t0 = Time.unscaledTime;
             // 1) pop + dim
+            Sfx.Play(Sfx.BagOpen);
             for (float t = 0; t < BagT.Pop; t += Time.unscaledDeltaTime)
             {
                 if (my != token) break; float p = t / BagT.Pop;
@@ -110,7 +111,7 @@ namespace KnitLink
             Destroy(stage.gameObject);
             bagRT.GetComponent<CanvasGroup>().alpha = 1;
             if (my != token) yield break;
-            bagHold = -1; RenderBag(); StartCoroutine(Bump(bagRT, 1.16f));
+            bagHold = -1; RenderBag(); StartCoroutine(Bump(bagRT, 1.16f)); Sfx.Play(Sfx.Boost);
             KLog.Info("Revive", $"Yarn bag animation done in {Time.unscaledTime - t0:0.00}s");
         }
         IEnumerator BagBall((string c, Vector3 from, Image slot) it, int i, RectTransform bag, RectTransform balls, Image front, Vector2 mouth, int my)
@@ -119,6 +120,7 @@ namespace KnitLink
             if (my != token) yield break;
             float k = canvas.scaleFactor, sz = Lay.SlotSize;
             if (it.slot != null) SetSlot(slots.IndexOf(it.slot), null);
+            Sfx.Play(Sfx.BagLift);
             var im = UIKit.YarnImg("Ball", balls, it.c); im.preserveAspect = true; var rt = im.rectTransform; rt.sizeDelta = new Vector2(sz, sz);
             rt.SetParent(bag.parent, true); rt.SetAsLastSibling();   // above the bag while flying
             rt.position = it.from;
@@ -135,7 +137,7 @@ namespace KnitLink
             rt.SetParent(balls, true); Vector3 a = rt.position, b = bag.TransformPoint(mouth + new Vector2(0, -70));
             for (float t = 0; t < BagT.Drop; t += Time.unscaledDeltaTime) { if (my != token) yield break; float p = t / BagT.Drop; rt.position = Vector3.Lerp(a, b, p * p); rt.localScale = Vector3.one * Mathf.Lerp(.8f, .62f, p); yield return null; }
             Destroy(im.gameObject);
-            StartCoroutine(Squash(bag));
+            StartCoroutine(Squash(bag)); Sfx.Play(Sfx.Clink);
             // soft glow, not a solid white oval (a solid one looked like a hole in the bag's mouth – fixed 25/10)
             var puff = UIKit.Img("Puff", bag, UIKit.SoftGlow, new Color(1, 1, 1, .9f)); puff.rectTransform.sizeDelta = new Vector2(220, 96); puff.rectTransform.anchoredPosition = mouth;
             StartCoroutine(PuffFade(puff));

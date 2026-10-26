@@ -129,6 +129,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1070556586}
   - component: {fileID: 1070556585}
+  - component: {fileID: 1070556587}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -202,6 +203,14 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!81 &1070556587
+AudioListener:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1070556584}
+  m_Enabled: 1
 --- !u!1 &1892466131
 GameObject:
   m_ObjectHideFlags: 0
@@ -231,6 +240,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29b74dd16c668ae46bde4e5586c48a0b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SandJar.GameController
+  devSkipTutorials: 0
 --- !u!4 &1892466133
 Transform:
   m_ObjectHideFlags: 0

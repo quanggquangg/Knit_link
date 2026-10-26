@@ -109,7 +109,8 @@ namespace KnitLink
             public Button Link(string label, System.Action act)
             {
                 var row = Row(110, 12); var t = UIKit.Txt("Link", row, label, 42, skin ? SkinPop.Soft : CardSoft); UIKit.Stretch(t.rectTransform); t.raycastTarget = true;
-                var line = UIKit.Img("Underline", row, null, CardSoft); line.gameObject.SetActive(!skin);   // new art: no underline (user 25/10) var lrt = line.rectTransform; lrt.anchorMin = lrt.anchorMax = new Vector2(.5f, .5f); lrt.sizeDelta = new Vector2(t.preferredWidth, 3); lrt.anchoredPosition = new Vector2(0, -26);
+                var line = UIKit.Img("Underline", row, null, CardSoft); line.gameObject.SetActive(!skin);   // new art: no underline (user 25/10)
+                var lrt = line.rectTransform; lrt.anchorMin = lrt.anchorMax = new Vector2(.5f, .5f); lrt.sizeDelta = new Vector2(t.preferredWidth, 3); lrt.anchoredPosition = new Vector2(0, -26);
                 var b = row.gameObject.AddComponent<Button>(); b.targetGraphic = t; b.onClick.AddListener(() => act()); return b;
             }
         }

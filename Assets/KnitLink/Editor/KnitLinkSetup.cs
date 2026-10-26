@@ -22,7 +22,7 @@ namespace KnitLink.EditorTools
         public static void Setup()
         {
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
-            var cam = new GameObject("Main Camera", typeof(Camera));
+            var cam = new GameObject("Main Camera", typeof(Camera), typeof(AudioListener));   // AudioListener: without it Unity plays no sound
             cam.tag = "MainCamera";
             var c = cam.GetComponent<Camera>();
             c.clearFlags = CameraClearFlags.SolidColor; c.backgroundColor = new Color(.11f, .16f, .32f); c.orthographic = true;

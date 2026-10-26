@@ -402,6 +402,18 @@ namespace KnitLink
             if (v.rim != null) v.rim.color = c;
         }
 
+        // ---------- tutorial hand ----------
+        // artist's hand.png (user 26/10): white glove pointing up-left; the fingertip is near the top-left of the picture.
+        const float HandH = 190;                        // hand height on screen (reference pixels)
+        static readonly Vector2 HandTip = new Vector2(.21f, .98f);   // fingertip in the picture (0..1 from bottom-left) = the point that taps
+        void SkinHand(Image hand)
+        {
+            var s = SK ? Skin.Get("hand") : null; if (s == null) return;   // no art: keep the code-drawn hand
+            hand.sprite = s; hand.preserveAspect = true;
+            hand.rectTransform.sizeDelta = new Vector2(HandH * s.rect.width / s.rect.height, HandH); hand.rectTransform.pivot = HandTip;
+            UIKit.DropShadow(hand, 8, 5, new Color(0, 0, 0, .3f));
+        }
+
         // ---------- level title ----------
         /// <summary>New art: "Level N" white, a pink "Hard" / "Super hard" chip after it, the picture name in yellow capitals below.</summary>
         void SkinLevelTitle()

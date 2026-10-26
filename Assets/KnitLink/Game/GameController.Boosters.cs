@@ -17,13 +17,14 @@ namespace KnitLink
         {
             if (S == null || S.Won || S.over || modalRT.gameObject.activeSelf || Time.unscaledTime < introUntil) return 0;
             if (coach != null && coach.booster != k) return 0;
-            if (Locked(k)) { Toast($"{BName[k]} unlocks at level {Unlock[k]}."); return 0; }
+            if (Locked(k)) { Sfx.Play(Sfx.Err); Toast($"{BName[k]} unlocks at level {Unlock[k]}."); return 0; }
             if (coach != null && coach.booster == k) return 2;
             if (Inv(k) <= 0) { OfferBooster(k); return 0; }
             return 1;
         }
         void Spend(string k, int g)
         {
+            Sfx.Play(Sfx.Boost);
             if (g == 2) ResolveCoach(); else SetInv(k, Inv(k) - 1);
             RenderBoosters();
         }

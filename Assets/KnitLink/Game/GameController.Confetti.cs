@@ -2,7 +2,7 @@
 //   2 cannons at the left and right screen edges, 72% down the screen, 130 pieces each, shot up and inwards; no rain from the top.
 //   Pieces: 18% dots, ~20% ribbons, the rest paper squares; each one flips (width follows cos) and sways. 3.6 s, the last 0.7 s fade.
 //   Colors: the picture's yarn colors + yellow #ffd257 + white + pink #ff8fb1.
-//   Sound: 2 "pops" 0.07 s apart (made in code, no audio file): low thump 150→45 Hz, a paper whoosh, 4 crackles. Muted with Sound off.
+//   Sound: Sfx.Popper (Game/Sfx.cs) - two soft pops, a quiet paper rustle and a sparkle. Muted with Sound off.
 // Motion numbers are the web demo's (CSS px per frame at 60 fps) × Px.
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +13,7 @@ namespace KnitLink
 {
     public partial class GameController
     {
-        RectTransform confettiLayer; AudioSource popperSrc; static AudioClip popperClip;
+        RectTransform confettiLayer;
 
         void Confetti()
         {
@@ -31,35 +31,8 @@ namespace KnitLink
             PopperSound();
         }
 
-        void PopperSound()
-        {
-            if (popperSrc == null) { popperSrc = gameObject.AddComponent<AudioSource>(); popperSrc.playOnAwake = false; popperSrc.spatialBlend = 0; }
-            if (popperClip == null) popperClip = MakePopperClip();
-            popperSrc.PlayOneShot(popperClip, .9f);
-        }
-        /// <summary>Two party-popper shots, 0.07 s apart.</summary>
-        static AudioClip MakePopperClip()
-        {
-            const int Rate = 44100; float len = .45f; int n = (int)(Rate * len); var d = new float[n];
-            var rnd = new System.Random(7);
-            foreach (float at in new[] { 0f, .07f })
-            {
-                int s0 = (int)(at * Rate); float phase = 0, lp = 0, hpPrev = 0, hpOut = 0;
-                float aLp = 1 - Mathf.Exp(-2 * Mathf.PI * 2600f / Rate), aHp = Mathf.Exp(-2 * Mathf.PI * 4200f / Rate);
-                for (int i = 0; s0 + i < n && i < Rate * .3f; i++)
-                {
-                    float t = (float)i / Rate, v = 0;
-                    if (t < .16f) { float f = Mathf.Lerp(150, 45, t / .16f); phase += 2 * Mathf.PI * f / Rate; v += Mathf.Sin(phase) * Mathf.Exp(-t * 22) * .9f; }   // thump
-                    float noise = (float)rnd.NextDouble() * 2 - 1;
-                    if (t < .22f) { lp += aLp * (noise - lp); v += lp * Mathf.Exp(-t * 16) * .8f; }   // paper whoosh
-                    hpOut = aHp * (hpOut + noise - hpPrev); hpPrev = noise;                          // crackles: short bright bursts
-                    for (int k = 0; k < 4; k++) { float c = .05f + k * .045f + (k % 2) * .012f; if (t > c && t < c + .012f) v += hpOut * .6f * (1 - (t - c) / .012f); }
-                    d[s0 + i] += v;
-                }
-            }
-            float peak = .001f; foreach (var x in d) peak = Mathf.Max(peak, Mathf.Abs(x)); for (int i = 0; i < n; i++) d[i] *= .85f / peak;
-            var clip = AudioClip.Create("Popper", n, 1, Rate, false); clip.SetData(d, 0); return clip;
-        }
+        /// <summary>Win sound with the confetti (26/10: the old code-made "party popper" sounded harsh - replaced by Sfx.Popper).</summary>
+        void PopperSound() => Sfx.Play(Sfx.Popper);
     }
 
     /// <summary>One confetti burst: moves its pieces every frame, removes itself at the end.</summary>

@@ -90,7 +90,7 @@ namespace KnitLink
             else if (boxLid != null)
             {
                 var lid = boxLid; boxLid = null; shownBox = -1;
-                KLog.Info("Box", "Needle box opened");
+                KLog.Info("Box", "Needle box opened"); Sfx.Play(Sfx.Unlock);
                 StartCoroutine(LidOpen(lid));
             }
         }
@@ -108,7 +108,7 @@ namespace KnitLink
         void BoxNudge()
         {
             if (S == null || S.over || modalRT.gameObject.activeSelf || Time.unscaledTime < introUntil) return;
-            Buzz(); if (boxLid != null) StartCoroutine(Nudge(boxLid));
+            Buzz(); Sfx.Play(Sfx.Err); if (boxLid != null) StartCoroutine(Nudge(boxLid));
         }
         IEnumerator Nudge(RectTransform rt)
         {
@@ -149,7 +149,7 @@ namespace KnitLink
         /// <summary>No path between two same-color balls: buzz, shake both, red ring blinks twice (no text).</summary>
         void NoPathFeedback(int a, int b)
         {
-            Buzz();
+            Buzz(); Sfx.Play(Sfx.Err);
             foreach (int t in new[] { a, b }) { Shake(cells[t].front.rectTransform); StartCoroutine(RedFlash(cells[t])); }
         }
         IEnumerator RedFlash(CellView v)

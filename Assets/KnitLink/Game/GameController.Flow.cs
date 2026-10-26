@@ -15,7 +15,7 @@ namespace KnitLink
         void MaybeAuto()
         {
             if (autoRun || pending > 0 || S == null || !S.CanAuto) return;
-            autoRun = true; sel = -1; int my = token;
+            autoRun = true; sel = -1; int my = token; Sfx.Play(Sfx.Boost);
             StartCoroutine(Delay(.65f, () =>
             {
                 if (my != token) { autoRun = false; return; }

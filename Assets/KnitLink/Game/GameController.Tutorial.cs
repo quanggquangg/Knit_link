@@ -18,6 +18,9 @@ namespace KnitLink
             // popups and hands wait for the level start animation (GameController.Intro.cs)
             if (introUntil > Time.unscaledTime) yield return new WaitForSecondsRealtime(introUntil - Time.unscaledTime);
             if (my != token) yield break;
+            // hard / super hard levels: warning ribbon first (GameController.HardBanner.cs), tutorials after it
+            yield return HardBanner(my);
+            if (my != token) yield break;
             // a booster unlocks at its level NUMBER (GameConfig), whatever level file sits there
             foreach (var k in BKeys)
                 if (L.num == Unlock[k] && !Claimed(k)) { yield return new WaitForSecondsRealtime(.35f); if (my == token) BoosterIntro(k); yield break; }
@@ -87,7 +90,7 @@ namespace KnitLink
         // the "New booster" popup is in GameController.Popups.cs (BoosterIntro)
         void ClaimBooster(string k)
         {
-            PlayerPrefs.SetInt("kl.claimed." + k, 1); SetInv(k, Inv(k) + Cfg.boostersOnUnlock); CloseModal(); RenderBoosters();
+            PlayerPrefs.SetInt("kl.claimed." + k, 1); SetInv(k, Inv(k) + Cfg.boostersOnUnlock); CloseModal(); RenderBoosters(); Sfx.Play(Sfx.Unlock);
             StartCoroutine(Bump((RectTransform)bButtons[k].transform, 1.16f));
             StartCoroutine(CoachBoosterWhenReady(k, token));
         }
@@ -148,7 +151,8 @@ namespace KnitLink
             var outl = bub.gameObject.AddComponent<Outline>(); outl.effectColor = UIKit.Honey; outl.effectDistance = new Vector2(4, -4);
             bubbleText = UIKit.Txt("Text", bubbleRT, "", 38, UIKit.Ink); UIKit.Stretch(bubbleText.rectTransform, 20); SkinBubble(bub, bubbleText);
             var hand = UIKit.Img("Hand", hb, UIKit.Hand, Color.white); handRT = hand.rectTransform;
-            handRT.sizeDelta = new Vector2(170, 170); handRT.pivot = new Vector2(.44f, .93f);
+            handRT.sizeDelta = new Vector2(170, 170); handRT.pivot = new Vector2(.44f, .93f);   // pivot = fingertip
+            SkinHand(hand);
             coachRT.gameObject.SetActive(false);
         }
         void StartCoach(Coach c)

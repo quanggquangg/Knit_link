@@ -19,7 +19,28 @@ namespace KnitLink
             }
         }
 
-        public static readonly Dictionary<string, (Color c, Color d, Color l, string name)> Colors = new Dictionary<string, (Color c, Color d, Color l, string name)>
+        /// <summary>Yarn colors in use: c = main, d = dark (shade, gaps), l = light (shine). With the artist's art (Skin.On) these are
+        /// the colors of the artist's balls, so the picture, the strand, rings and confetti match the balls on the board (26/10).</summary>
+        public static Dictionary<string, (Color c, Color d, Color l, string name)> Colors => Skin.On ? SkinColors : ClassicColors;
+
+        /// <summary>Colors measured from the artist's ball pictures (Resources/Skin/.../Ingame/Asset/&lt;color&gt;-ball.png, the middle
+        /// tone of the ball). If the artist changes a ball's color, update its line here (d = c × 0.72, l = c + 42% white).
+        /// Checked by Tests/EditMode/SkinColorsTests.cs: the test fails when a line no longer matches its ball picture.</summary>
+        public static readonly Dictionary<string, (Color c, Color d, Color l, string name)> SkinColors = new Dictionary<string, (Color c, Color d, Color l, string name)>
+        {
+            { "red",    (Hex("#e02d1d"), Hex("#a12014"), Hex("#ed857b"), "Red") },
+            { "orange", (Hex("#f27537"), Hex("#ae5427"), Hex("#f7ae8b"), "Orange") },
+            { "yellow", (Hex("#fac304"), Hex("#b48c02"), Hex("#fcdc6d"), "Yellow") },
+            { "green",  (Hex("#23b34f"), Hex("#198038"), Hex("#7fd298"), "Green") },
+            { "teal",   (Hex("#3eadf0"), Hex("#2c7cac"), Hex("#8fcff6"), "Teal") },     // art file: cyan-ball
+            { "blue",   (Hex("#3f5de5"), Hex("#2d42a4"), Hex("#8fa1ef"), "Blue") },
+            { "purple", (Hex("#935add"), Hex("#69409f"), Hex("#c09feb"), "Purple") },
+            { "pink",   (Hex("#ed65a7"), Hex("#aa4878"), Hex("#f4a5cb"), "Pink") },
+            { "cream",  (Hex("#f0edea"), Hex("#acaaa8"), Hex("#f6f4f2"), "Cream") },     // art file: white-ball
+        };
+
+        /// <summary>The old code-drawn look (no artist art, or the skin turned off).</summary>
+        static readonly Dictionary<string, (Color c, Color d, Color l, string name)> ClassicColors = new Dictionary<string, (Color c, Color d, Color l, string name)>
         {
             { "red",    (Hex("#d9566b"), Hex("#a5384d"), Hex("#ef8d9e"), "Red") },
             { "orange", (Hex("#ec8a3b"), Hex("#b9631f"), Hex("#f8b77a"), "Orange") },

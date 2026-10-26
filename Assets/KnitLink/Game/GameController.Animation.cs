@@ -53,7 +53,7 @@ namespace KnitLink
                         {
                             if (my != token) return;
                             if (ek.k == EvKind.Jar) LandIn(ek.basketId);
-                            else if (ek.k == EvKind.Shelf) SetSlot(ek.idx, it.c);   // the slot shows the ball the moment it lands (no empty frame = no flash)
+                            else if (ek.k == EvKind.Shelf) { SetSlot(ek.idx, it.c); Sfx.Play(Sfx.Shelf); }   // the slot shows the ball the moment it lands (no empty frame = no flash)
                         })));
                 }
                 else if (e.k == EvKind.Absorb)
@@ -76,10 +76,12 @@ namespace KnitLink
             RenderShelf(); RenderBoosters();
             if (doneEv.Count > 0)
             {
+                Sfx.Play(Sfx.Pour);
                 var knits = doneEv.Select(d => StartCoroutine(Knit(d.basketId, d.li, d.c, my))).ToList();
                 RenderBaskets(false);
                 foreach (var k in knits) yield return k;
                 if (my != token) yield break;
+                Sfx.Play(Sfx.Done);
             }
             RenderBaskets(pending <= 1); DrawPicture();   // don't jump counters while another move's balls are still flying
         }
@@ -90,6 +92,7 @@ namespace KnitLink
         void LandIn(string id)
         {
             if (!basketViews.TryGetValue(id, out var v)) return;
+            Sfx.Play(Sfx.Clink);
             v.shown = Mathf.Min(4, v.shown + 1); UpdateCount(v); StartCoroutine(Bump(BasketBumpTarget(v)));
             if (v.shown >= 1 && v.fill[v.shown - 1] != null) StartCoroutine(Pop(v.fill[v.shown - 1].rectTransform));   // the new yarn drops into the basket
         }

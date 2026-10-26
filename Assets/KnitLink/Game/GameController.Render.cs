@@ -19,7 +19,7 @@ namespace KnitLink
             for (int t = 0; t < cells.Count; t++)
             {
                 var v = cells[t]; var st = S.stacks[t]; int hp = S.tg[t];
-                if (v.shownHp > 0 && hp == 0) StartCoroutine(Poof(v));
+                if (v.shownHp > 0 && hp == 0) { StartCoroutine(Poof(v)); Sfx.Play(Sfx.Unlock); }
                 if (hp > 0 && hp < v.shownHp) StartCoroutine(Wiggle(v.knot.rectTransform));
                 v.knot.gameObject.SetActive(hp > 0); if (hp > 0) v.knot.sprite = KnotArt(hp < 2);
                 v.shownHp = hp;

@@ -150,7 +150,7 @@ namespace KnitLink
             Coroutine slide = null;
             track.gameObject.AddComponent<Button>().onClick.AddListener(() =>
             {
-                PlayerPrefs.SetInt("kl.set." + key, SettingOn(key) ? 0 : 1); ApplySettings(); if (key == "vibe") Buzz();
+                PlayerPrefs.SetInt("kl.set." + key, SettingOn(key) ? 0 : 1); ApplySettings(); Sfx.Play(Sfx.Tap); if (key == "vibe") Buzz();
                 if (slide != null) StopCoroutine(slide);
                 slide = StartCoroutine(SwitchSlide(knob, word, SettingOn(key), draw));
                 KLog.Info("Config", $"Setting {key} = {(SettingOn(key) ? "on" : "off")}");

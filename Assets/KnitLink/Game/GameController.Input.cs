@@ -19,11 +19,11 @@ namespace KnitLink
             if (Time.unscaledTime < introUntil) return;   // yarn is still dropping in
             if (coach != null && (coach.booster != null || !coach.trays.Contains(t))) return;
             if (S.Boxed(t)) { BoxNudge(); return; }   // under the closed needle box
-            if (S.tg[t] > 0) { Buzz(); Shake(cells[t].knot.rectTransform); Toast("Tangle! Clear 2 balls next to it to pull it loose."); return; }
-            if (S.Frozen(t)) { Buzz(); Shake(cells[t].ice.rectTransform); Toast($"Frozen! It thaws after {S.ice[t]} more {(S.ice[t] > 1 ? "matches" : "match")}."); return; }
+            if (S.tg[t] > 0) { Buzz(); Sfx.Play(Sfx.Err); Shake(cells[t].knot.rectTransform); Toast("Tangle! Clear 2 balls next to it to pull it loose."); return; }
+            if (S.Frozen(t)) { Buzz(); Sfx.Play(Sfx.Err); Shake(cells[t].ice.rectTransform); Toast($"Frozen! It thaws after {S.ice[t]} more {(S.ice[t] > 1 ? "matches" : "match")}."); return; }
             var b = S.Top(t); if (b == null) return;
-            if (sel < 0) { sel = t; RenderBoard(); CoachHand(); return; }
-            if (sel == t) { sel = -1; RenderBoard(); CoachHand(); return; }
+            if (sel < 0) { Sfx.Play(Sfx.Tap); sel = t; RenderBoard(); CoachHand(); return; }
+            if (sel == t) { Sfx.Play(Sfx.Tap); sel = -1; RenderBoard(); CoachHand(); return; }
             var a = S.Top(sel);
             if (a != null && a.c == b.c)
             {
@@ -37,7 +37,7 @@ namespace KnitLink
                 if (coach != null) ResolveCoach();
                 DoMove(sel, t, path); return;
             }
-            sel = t; RenderBoard(); CoachHand();
+            Sfx.Play(Sfx.Tap); sel = t; RenderBoard(); CoachHand();
         }
 
         void DoMove(int a, int b, List<(int x, int y)> path)
@@ -46,7 +46,7 @@ namespace KnitLink
             history.Push((S.Clone(), (float[])prog.Clone(), moves, peak)); lastMove = (a, b);
             string c = S.Top(a).c;
             KLog.Info("Move", $"Match {c} spots {a}+{b} (move {moves + 1}, shelf {S.shelf.Count}/{S.cap})");
-            S.Apply(a, b, ev); moves++;
+            S.Apply(a, b, ev); moves++; Sfx.Play(Sfx.Link);
             DrawLink(path, c);
             AfterAct(ev, origins, .2f);
         }
