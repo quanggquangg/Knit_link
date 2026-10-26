@@ -107,6 +107,11 @@ namespace KnitLink
             public int shown; public float targetX, targetScale = 1, targetAlpha = 1; public string color; public bool preview;
         }
 
+        // Save progress, coins and boosters when the app goes to the background (27/10). iOS (and Android) often kill a
+        // background app without OnApplicationQuit, and Unity only writes PlayerPrefs to disk on quit or Save().
+        void OnApplicationPause(bool paused) { if (paused) PlayerPrefs.Save(); }
+        void OnApplicationFocus(bool focus) { if (!focus) PlayerPrefs.Save(); }
+
         // ======================================================================
         IEnumerator Start()
         {
