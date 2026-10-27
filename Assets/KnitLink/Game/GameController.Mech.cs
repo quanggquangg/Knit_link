@@ -15,7 +15,7 @@ namespace KnitLink
 {
     public partial class GameController
     {
-        static class MechT { public const float BeltLoop = 1.4f, Wrap = .3f, LidOpen = .62f, Flash = .6f; }
+        static class MechT { public const float BeltLoop = 1.4f, Wrap = .3f, LidOpen = .62f, Flash = .6f, ZeroHold = .45f; }   // ZeroHold: "0" shows this long before the lid opens
         static readonly Color LidRed = UIKit.Hex("#d9566b"), LidDark = UIKit.Hex("#a5384d"), LidPanel = UIKit.Hex("#e46f84"), LidLabel = UIKit.Hex("#5a2a2f"),
                               BeltColor = UIKit.Hex("#5b6275"), NoPathRed = UIKit.Hex("#e0344f"),
                               IceBlock = UIKit.Hex("#cdeafb");   // opaque frozen-yarn block (23/10)
@@ -90,12 +90,17 @@ namespace KnitLink
             else if (boxLid != null)
             {
                 var lid = boxLid; boxLid = null; shownBox = -1;
-                KLog.Info("Box", "Needle box opened"); Sfx.Play(Sfx.Unlock);
-                StartCoroutine(LidOpen(lid));
+                KLog.Info("Box", "Needle box opened");
+                // the count reaches 0 first (bump), then the lid opens (user 27/10: it opened while still showing 2)
+                if (boxCountText != null) { boxCountText.text = "0"; StartCoroutine(Bump(boxCountText.transform.parent as RectTransform, 1.3f)); }
+                StartCoroutine(LidOpen(lid, MechT.ZeroHold));
             }
         }
-        IEnumerator LidOpen(RectTransform lid)
+        IEnumerator LidOpen(RectTransform lid, float wait = 0)
         {
+            if (wait > 0) yield return new WaitForSecondsRealtime(wait);
+            if (lid == null) yield break;
+            Sfx.Play(Sfx.Unlock);
             var cg = lid.gameObject.AddComponent<CanvasGroup>(); cg.blocksRaycasts = false; var home = lid.anchoredPosition;
             for (float t = 0; t < MechT.LidOpen; t += Time.unscaledDeltaTime)
             {

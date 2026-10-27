@@ -359,6 +359,9 @@ namespace KnitLink
             shade.gameObject.SetActive(false); panel.gameObject.SetActive(false);
             label.color = new Color(1, 1, 1, 0); label.rectTransform.anchoredPosition = new Vector2(0, boxLid.sizeDelta.y * .02f);
             boxCountText.color = SkinBrown;
+            // ball and number sit inside the cream label of the art (user 27/10: the ball touched the label's left edge)
+            ball.rectTransform.anchoredPosition = new Vector2(-cs * .2f, 0);
+            boxCountText.rectTransform.anchoredPosition = new Vector2(cs * .21f, 0);
         }
         /// <summary>Conveyor belt from the artist's vertical pieces turned on their side: track (conveyor1), moving chevrons
         /// (one 116 px period of conveyor2, tiled) and the two rails (conveyor5). The chevrons point down in the files.</summary>
