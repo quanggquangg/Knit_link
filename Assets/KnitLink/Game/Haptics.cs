@@ -41,12 +41,13 @@ namespace KnitLink
 #if UNITY_ANDROID && !UNITY_EDITOR
             switch (k)
             {
-                case Kind.Light: Android(18, 70); break;
-                case Kind.Medium: Android(28, 140); break;
-                default: Android(45, 255); break;
+                // 27/10: a bit stronger (was 18 ms / 70, 28 ms / 140, 45 ms / 255)
+                case Kind.Light: Android(28, 130); break;
+                case Kind.Medium: Android(40, 200); break;
+                default: Android(55, 255); break;
             }
 #elif UNITY_IOS && !UNITY_EDITOR
-            KLHapticImpact((int)k);   // 0 light, 1 medium, 2 heavy
+            KLHapticImpact(Mathf.Min(2, (int)k + 1));   // 27/10: one step stronger - Light plays the medium tap, Medium/Heavy the heavy tap
 #endif
         }
 

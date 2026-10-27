@@ -284,7 +284,10 @@ namespace KnitLink
         IEnumerator FlyCoin(Vector3 from, Vector3 to, float delay, System.Action land)
         {
             yield return new WaitForSecondsRealtime(delay);
-            var im = UIKit.Img("Coin", hudLayer, UIKit.IconCoin, Color.white); var rt = im.rectTransform; rt.sizeDelta = new Vector2(62, 62);
+            // the same coin picture as the coin box (27/10): artist's Ingame/icon-coin, code-drawn coin without the art
+            var sp = SK ? Skin.Get("Ingame/icon-coin") : null;
+            var im = UIKit.Img("Coin", hudLayer, sp ?? UIKit.IconCoin, Color.white); im.preserveAspect = true; var rt = im.rectTransform;
+            rt.sizeDelta = sp != null ? new Vector2(76, 76 * sp.rect.height / sp.rect.width) : new Vector2(62, 62);
             var mid = (from + to) / 2 + Vector3.up * 110 * canvas.scaleFactor;
             for (float t = 0; t < .62f; t += Time.unscaledDeltaTime)
             {

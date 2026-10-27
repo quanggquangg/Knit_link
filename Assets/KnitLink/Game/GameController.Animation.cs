@@ -92,7 +92,7 @@ namespace KnitLink
         void LandIn(string id)
         {
             if (!basketViews.TryGetValue(id, out var v)) return;
-            Sfx.Play(Sfx.Clink);
+            // no sound when a ball lands in the basket (user 27/10: the match already has its "link" sound)
             v.shown = Mathf.Min(4, v.shown + 1); UpdateCount(v); StartCoroutine(Bump(BasketBumpTarget(v)));
             if (v.shown >= 1 && v.fill[v.shown - 1] != null) StartCoroutine(Pop(v.fill[v.shown - 1].rectTransform));   // the new yarn drops into the basket
         }

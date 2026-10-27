@@ -5,7 +5,8 @@
 //
 //   Sfx.Play(Sfx.Tap)  … where each sound is used:
 //     Tap     select / unselect a yarn ball, Settings switches, language     Link    a pair is matched
-//     Clink   a ball lands in the basket, a coin lands in the coin box        Shelf   a ball lands on the shelf
+//     Clink   a coin lands in the coin box, a ball drops into the yarn bag    Shelf   a ball lands on the shelf
+//             (not when a ball lands in the basket - removed 27/10)
 //     Err     blocked: no path, tangle, ice, closed box, locked booster      Pour    a full basket starts knitting
 //     Done    the basket finished knitting into the picture                  Boost   a booster is used, auto-finish, yarn bag filled
 //     Unlock  booster claimed, tangle cleared, needle box opens              Win     level won        Fail   level lost
