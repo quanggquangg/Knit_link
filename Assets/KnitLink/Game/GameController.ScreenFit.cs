@@ -18,6 +18,10 @@ namespace KnitLink
         {
             public const float ColumnW = 1080;     // design width (reference pixels)
             public const float MinHeight = 2100;   // below this the column is scaled down to keep the board big enough
+            /// <summary>The layout already keeps this much free space above the top buttons (Lay.TopY) for a phone's status bar.
+            /// On a phone with a notch / Dynamic Island only the part of the safe-area inset beyond this pushes the column down
+            /// (27/10: the full inset + this space left a big empty band at the top and squeezed the board).</summary>
+            public const float TopReserve = 80;
         }
         RectTransform screenRT;   // the whole screen (background, popups, dim, confetti, coach)
         /// <summary>Editor test hook (27/10): pretend the phone has this safe area (pixels, like Screen.safeArea), e.g. an iPhone
@@ -45,7 +49,7 @@ namespace KnitLink
             float scale = Mathf.Min(w / Fit.ColumnW, h / Fit.MinHeight);
             canvas.GetComponent<CanvasScaler>().scaleFactor = scale;
             // notch / camera hole: push the top of the column down (the background stays full screen)
-            float topInset = Mathf.Max(0, h - fitSafe.yMax) / scale;
+            float topInset = Mathf.Max(0, Mathf.Max(0, h - fitSafe.yMax) / scale - Fit.TopReserve);
             // home bar: lift the bottom of the column (boosters, board); the orange bar grows so it still reaches the screen bottom
             float bottomInset = Mathf.Max(SK ? SkinLay.HomeSpace : 0, fitSafe.yMin / scale);
             root.offsetMax = new Vector2(root.offsetMax.x, -topInset); root.offsetMin = new Vector2(root.offsetMin.x, bottomInset);
