@@ -15,14 +15,9 @@ namespace KnitLink
     {
         // ---------- settings (Build 1: Sound, Music, Vibration; opening it pauses the level) ----------
         static bool SettingOn(string k) => PlayerPrefs.GetInt("kl.set." + k, 1) == 1;
-        static void ApplySettings() { AudioListener.volume = SettingOn("sound") ? 1 : 0; }
+        static void ApplySettings() { AudioMix.Apply(SettingOn("sound"), SettingOn("music")); }   // mixer groups SFX / Music (AudioMix.cs)
         /// <summary>Short vibration on errors / losing, when the player allows it.</summary>
-        static void Buzz()
-        {
-#if UNITY_ANDROID || UNITY_IOS
-            if (SettingOn("vibe")) Handheld.Vibrate();
-#endif
-        }
+        static void Buzz() => Haptics.Medium();   // errors / blocked / lose (Haptics.cs, follows the Vibration switch)
         void OpenSettings()
         {
             if (modalRT.gameObject.activeSelf) return;
@@ -34,7 +29,8 @@ namespace KnitLink
                 if (c.skin)
                 {   // new art (mockup setting.png): rows on inner-box, switches with ON/OFF, Continue + Retry side by side
                     SkinSettingRow(c, "sound", "Sound", "Setting/icon-sound"); SkinSettingRow(c, "music", "Music", "Setting/icon-music"); SkinSettingRow(c, "vibe", "Vibration", "Setting/icon-haptic");
-                    LanguageRow(c); SkinSettingButtons(c); return;
+                    if (LocText.LanguageChoice) LanguageRow(c);
+                    SkinSettingButtons(c); return;
                 }
                 foreach (var (key, label, icon) in new[] { ("sound", "Sound", UIKit.IconSpeaker), ("music", "Music", UIKit.IconNote), ("vibe", "Vibration", UIKit.IconPhone) })
                 {
@@ -43,7 +39,7 @@ namespace KnitLink
                     var t = UIKit.Txt("Label", row, label, 50, UIKit.Ink, TextAnchor.MiddleLeft); var trt = t.rectTransform; UIKit.Stretch(trt); trt.offsetMin = new Vector2(150, 0);
                     Switch(row, key);
                 }
-                LanguageRow(c);
+                if (LocText.LanguageChoice) LanguageRow(c);
                 c.BigButton("Continue", close);
             }, close);
         }
@@ -60,7 +56,7 @@ namespace KnitLink
                 var b = UIKit.Img("Lang_" + lang, row, UIKit.Rounded, on ? UIKit.Hex("#2f8a3d") : c.skin ? UIKit.Hex("#f1c79c") : Color.white, true); float bh = c.skin ? 80 : 94; Pill(b, bh); var brt = b.rectTransform;
                 brt.anchorMin = brt.anchorMax = new Vector2(1, .5f); brt.pivot = new Vector2(1, .5f); brt.sizeDelta = new Vector2(w, bh); brt.anchoredPosition = new Vector2(x, 0); x -= w + 16;
                 var bt = UIKit.Txt("Text", brt, name, c.skin ? 32 : 38, on ? Color.white : UIKit.Ink); UIKit.Stretch(bt.rectTransform); LocText.Fixed(bt);
-                b.gameObject.AddComponent<Button>().onClick.AddListener(() =>
+                b.gameObject.AddComponent<Button>().WithHaptic().onClick.AddListener(() =>
                 {
                     if (Loc.Lang == lang) return;
                     LocText.SetLang(lang); CloseModal(); OpenSettings();   // rebuild so pill widths fit the new words
@@ -78,7 +74,7 @@ namespace KnitLink
                 knob.rectTransform.anchoredPosition = new Vector2(on ? 36 : -36, 0);
             };
             draw();
-            track.gameObject.AddComponent<Button>().onClick.AddListener(() =>
+            track.gameObject.AddComponent<Button>().WithHaptic().onClick.AddListener(() =>
             {
                 PlayerPrefs.SetInt("kl.set." + key, SettingOn(key) ? 0 : 1); ApplySettings(); Sfx.Play(Sfx.Tap); if (key == "vibe") Buzz(); draw();
                 KLog.Info("Config", $"Setting {key} = {(SettingOn(key) ? "on" : "off")}");
@@ -144,7 +140,7 @@ namespace KnitLink
         }
 
         // ---------- revive / lose ----------
-        void ShowFail() { EndCoach(); Buzz(); Sfx.Play(Sfx.Fail); ShowRevive(false); }
+        void ShowFail() { EndCoach(); Buzz(); AudioMix.Duck(true); Sfx.Play(Sfx.Fail); ShowRevive(false); }
         void ShowStuck() { EndCoach(); ShowRevive(true); }
         void ShowRevive(bool stuck)
         {
@@ -230,7 +226,7 @@ namespace KnitLink
         int winReward; bool winCollecting;
         void ShowWin()
         {
-            if (winShown) return; winShown = true; EndCoach(); Confetti(); Sfx.Play(Sfx.Win);
+            if (winShown) return; winShown = true; EndCoach(); AudioMix.Duck(true); Confetti(); Sfx.Play(Sfx.Win);
             int reward = Cfg.WinCoins(L.kind); winReward = reward; winCollecting = false;
             KLog.Info("Win", $"Level {L.num} ({L.file}) won in {moves} moves, reward {reward} coins (not added until the player picks)");
             MarkBeaten(levelIndex);

@@ -152,7 +152,7 @@ namespace KnitLink
                 if (my != token) yield break;
                 int stitches = L.picture.Count(k => k == li);
                 if (v != null) StartCoroutine(RingAt(v.body.rectTransform.position, col.l));
-                StartCoroutine(StitchesPop(stitches));
+                StartCoroutine(StitchesPop(stitches)); Haptics.Light();   // the full basket is knitted and goes away
                 if (v != null)
                     for (float t = 0; t < .2f; t += Time.unscaledDeltaTime) { float p = t / .2f; v.cg.alpha = 1 - p; v.rt.localScale = Vector3.one * Mathf.Lerp(1, .72f, p); yield return null; }
             }

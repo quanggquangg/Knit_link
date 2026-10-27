@@ -12,10 +12,13 @@ namespace KnitLink
     public class LocText : MonoBehaviour
     {
         public const string PrefKey = "kl.lang";
+        /// <summary>27/10: the game is English only - no Language row in Settings, the saved choice is ignored.
+        /// Set to true to bring back the Language row (Vietnamese is still in Core/Loc.cs).</summary>
+        public const bool LanguageChoice = false;
         Text t; string src, shown; int ver = -1; bool upper;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-        static void LoadLang() => Loc.Set(PlayerPrefs.GetString(PrefKey, Loc.En));
+        static void LoadLang() => Loc.Set(LanguageChoice ? PlayerPrefs.GetString(PrefKey, Loc.En) : Loc.En);
 
         /// <summary>Change and save the language. Texts on screen update on the next frame.</summary>
         public static void SetLang(string lang)

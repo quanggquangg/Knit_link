@@ -15,7 +15,7 @@ namespace KnitLink
         void StartLevel(int li)
         {
             token++; StopAllCoroutines(); foreach (Transform c in fx) Destroy(c.gameObject);
-            levelIndex = li; L = file.levels[li]; PlayerPrefs.SetInt("kl.level", li);
+            levelIndex = li; L = file.levels[li]; PlayerPrefs.SetInt("kl.level", li); AudioMix.Duck(false);
             S = BoardState.FromLevel(L); S.cap = Cfg.shelfSlots; winShown = false; winCollecting = false; bagHold = -1; history.Clear(); EndCoach(); tipShelfPending = false; revives = 0; lastMove = (-1, -1);
             sel = -1; moves = 0; peak = 0; pending = 0; autoRun = false;
             prog = new float[L.baskets.Length]; busyBaskets.Clear(); leavingBaskets.Clear();
@@ -41,8 +41,8 @@ namespace KnitLink
             foreach (var c in cells) Destroy(c.rt.gameObject); cells.Clear(); posAnims.Clear();
             Canvas.ForceUpdateCanvases();
             var g = S.geo; var area = boardPanel.rect;
-            // free space between the yarn and the board edge: the same on all 4 sides in the new art (SkinLay.BoardPad)
-            float padX = SK ? 2 * SkinLay.BoardPad : 60, padY = SK ? 2 * SkinLay.BoardPad : 90;
+            // free space between the yarn and the board edge in the new art: SkinLay.BoardPad left/right, SkinLay.BoardPadY top/bottom
+            float padX = SK ? 2 * SkinLay.BoardPad : 60, padY = SK ? 2 * SkinLay.BoardPadY : 90;
             float aw = area.width - padX, ah = area.height - padY;
             cs = Mathf.Min(aw / (g.W + GAP * (g.W - 1)), ah / (g.H * CELL_H + GAP * (g.H - 1)), 220);
             float stepX = cs * (1 + GAP), stepY = cs * CELL_H + cs * GAP;

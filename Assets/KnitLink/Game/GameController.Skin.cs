@@ -24,8 +24,11 @@ namespace KnitLink
             public const float ShelfY = 712, ShelfH = 182, HoleW = 97, HoleH = 46, HoleUp = 26, SlotBall = 98;
             public const float SpotHoleW = .92f, SpotHoleH = .34f, SpotHoleY = .41f;   // shadow hole under each ball (× spot size): width, height, centre below the spot centre
             public const float BagChipY = 30, BagChipH = 80;   // yarn bag chip: centre a little below the shelf bottom edge, height
-            public const float BoardPad = 88;   // minimum space between the yarn grid and the board edge, every side (inside the frame + its dashed line)
-            public const float BoardTop = 960, TabY = 10;   // board top edge (from the column top); roll tab / bag chip centre above that edge
+            public const float BoardPad = 88;   // minimum space between the yarn grid and the board edge, left and right (inside the frame + its dashed line)
+            public const float TabRight = 26, TabW = 288, TabH = 79;   // roll tab ("ROLLS DOWN"): right end this far in from the board's right edge (user 27/10: a little over the corner button); size
+            public const float BoardPadY = 50;  // same, top and bottom (27/10: smaller than the sides - on notched iPhones the board is wider than tall,
+                                                // so 6- and 7-row boards were limited by the height and their yarn got small)
+            public const float BoardTop = 960, TabY = 16;   // board top edge (from the column top); roll tab centre above that edge (its bottom dips into the frame)
             public const float HomeSpace = 60;               // kept free at the bottom for the iPhone home bar (more if the phone reports a bigger safe area)
             public const float Booster = 196, BoosterGap = 250, BoosterY = 150, BarH = 200;
             public const float CoinTextLeft = 96, CoinTextUp = 8;   // coin HUD: the number is centred between this and the right end
@@ -121,9 +124,12 @@ namespace KnitLink
             var bp = boardPanel.GetComponent<Image>(); var bs = Skin.Sliced("Ingame/board", 96, 96, 96, 96);
             if (bs != null) { bp.sprite = bs; bp.type = Image.Type.Sliced; bp.color = Color.white; bp.pixelsPerUnitMultiplier = 1.05f; }
             NoShadow(bp);
+            // roll tab (27/10, like the artist's mockup): a slim pill sitting on the board's top edge at the right, clear of the corner button
             var tab = rollChip.transform.parent.GetComponent<Image>(); Art(tab, "Ingame/board-tab");
-            tab.rectTransform.pivot = new Vector2(1, .5f); tab.rectTransform.sizeDelta = new Vector2(300, 128); tab.rectTransform.anchoredPosition = new Vector2(-34, SkinLay.TabY);
-            rollChip.color = Color.white; rollChip.fontSize = 36; rollChip.rectTransform.offsetMin = new Vector2(0, 26); UIKit.Outlined(rollChip, UIKit.Hex("#b5651d"), 2);
+            var tabSp = Skin.Sliced("Ingame/board-tab", 44, 30, 44, 40);   // 9-slice: the pill keeps its round ends at any width
+            if (tabSp != null) { tab.sprite = tabSp; tab.type = Image.Type.Sliced; tab.pixelsPerUnitMultiplier = 1.4f; }
+            tab.rectTransform.pivot = new Vector2(1, .5f); tab.rectTransform.sizeDelta = new Vector2(SkinLay.TabW, SkinLay.TabH); tab.rectTransform.anchoredPosition = new Vector2(-SkinLay.TabRight, SkinLay.TabY);
+            rollChip.color = Color.white; rollChip.fontSize = 32; rollChip.rectTransform.offsetMin = new Vector2(0, 8); rollChip.rectTransform.offsetMax = Vector2.zero; UIKit.Outlined(rollChip, UIKit.Hex("#b5651d"), 2);
 
             // boosters: round buttons on the orange bottom bar
             var bar = UIKit.SkinImg("BottomBar", screenRT, "Ingame/bottom"); var brt = bar.rectTransform; skinBar = brt;   // full screen width, behind the column

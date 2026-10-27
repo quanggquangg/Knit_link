@@ -46,7 +46,7 @@ namespace KnitLink
             history.Push((S.Clone(), (float[])prog.Clone(), moves, peak)); lastMove = (a, b);
             string c = S.Top(a).c;
             KLog.Info("Move", $"Match {c} spots {a}+{b} (move {moves + 1}, shelf {S.shelf.Count}/{S.cap})");
-            S.Apply(a, b, ev); moves++; Sfx.Play(Sfx.Link);
+            S.Apply(a, b, ev); moves++; Sfx.Play(Sfx.Link); Haptics.Light();
             DrawLink(path, c);
             AfterAct(ev, origins, .2f);
         }

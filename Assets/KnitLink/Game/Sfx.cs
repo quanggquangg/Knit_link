@@ -1,6 +1,7 @@
 // Sfx – the game's sound effects, made in code like the web demo (no audio files), soft woody "plucks" (26/10).
 //   Each sound is a short list of notes (tone) and puffs of noise (noise), written exactly as in the demo's art.js (AU.*).
-//   The clips are built once, the first time a sound plays. Sound on/off (Settings) = AudioListener.volume (GameController.Popups.cs).
+//   The clips are built once, the first time a sound plays. They play through the mixer's SFX group (AudioMix.cs, 27/10);
+//   Sound on/off in Settings mutes that group.
 //
 //   Sfx.Play(Sfx.Tap)  … where each sound is used:
 //     Tap     select / unselect a yarn ball, Settings switches, language     Link    a pair is matched
@@ -14,7 +15,9 @@
 //   To change a sound: edit its notes in Build() below. Overall loudness: Master.
 //   Real audio files win: a file Resources/Sounds/<name> (wav/mp3/ogg, e.g. Sounds/popper.wav) is played instead of the
 //   code-made sound of that name. Delete the file to go back to the code-made one.
-//   Files now: popper.wav = "Confetti Party Popper - Free Sound Effect" (sent by the user 26/10, trimmed to 2.14 s, mono).
+//   Files now (27/10): every sound above has a mixed WAV in Resources/Sounds, made by Tools/Audio/render_sounds.py (marimba /
+//   wool pluck / felt drum, small reverb, matched loudness) + music.wav (background loop). popper.wav = the user's
+//   "Confetti Party Popper - Free Sound Effect". The code-made notes below stay as the fallback.
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -43,6 +46,7 @@ namespace KnitLink
                 var go = new GameObject("Sfx"); Object.DontDestroyOnLoad(go);
                 src = go.AddComponent<AudioSource>(); src.playOnAwake = false; src.spatialBlend = 0;
             }
+            if (src.outputAudioMixerGroup == null) src.outputAudioMixerGroup = AudioMix.SfxGroup;
             EnsureListener();
             if (!clips.TryGetValue(name, out var clip)) clips[name] = clip = Resources.Load<AudioClip>("Sounds/" + name) ?? Build(name);
             if (clip != null) src.PlayOneShot(clip);

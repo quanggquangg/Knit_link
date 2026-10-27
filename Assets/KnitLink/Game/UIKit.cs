@@ -213,7 +213,7 @@ namespace KnitLink
         public static Button Btn(string name, Transform parent, string label, Color bg, Color fg, int size, System.Action onClick)
         {
             var im = Img(name, parent, Rounded, bg, true);
-            var b = im.gameObject.AddComponent<Button>();
+            var b = im.gameObject.AddComponent<Button>().WithHaptic();
             b.onClick.AddListener(() => onClick());
             var t = Txt("Label", im.transform, label, size, fg);
             Stretch((RectTransform)t.transform);

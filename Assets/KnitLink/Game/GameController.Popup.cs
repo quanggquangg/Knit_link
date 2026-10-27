@@ -111,7 +111,7 @@ namespace KnitLink
                 var row = Row(110, 12); var t = UIKit.Txt("Link", row, label, 42, skin ? SkinPop.Soft : CardSoft); UIKit.Stretch(t.rectTransform); t.raycastTarget = true;
                 var line = UIKit.Img("Underline", row, null, CardSoft); line.gameObject.SetActive(!skin);   // new art: no underline (user 25/10)
                 var lrt = line.rectTransform; lrt.anchorMin = lrt.anchorMax = new Vector2(.5f, .5f); lrt.sizeDelta = new Vector2(t.preferredWidth, 3); lrt.anchoredPosition = new Vector2(0, -26);
-                var b = row.gameObject.AddComponent<Button>(); b.targetGraphic = t; b.onClick.AddListener(() => act()); return b;
+                var b = row.gameObject.AddComponent<Button>().WithHaptic(); b.targetGraphic = t; b.onClick.AddListener(() => act()); return b;
             }
         }
 
@@ -145,7 +145,7 @@ namespace KnitLink
                 xrt.anchorMin = xrt.anchorMax = new Vector2(1, 1); xrt.sizeDelta = new Vector2(133, 133); xrt.anchoredPosition = new Vector2(-10, -10);
                 x.gameObject.AddComponent<Shadow>().effectColor = UIKit.Hex("#9d2238"); x.GetComponent<Shadow>().effectDistance = new Vector2(0, -11);
                 var ic = UIKit.Img("X", xrt, UIKit.IconCross, Color.white); ic.rectTransform.sizeDelta = new Vector2(70, 70);
-                x.gameObject.AddComponent<Button>().onClick.AddListener(() => onClose());
+                x.gameObject.AddComponent<Button>().WithHaptic().onClick.AddListener(() => onClose());
             }
             StartCoroutine(CardIn(rrt, dimI));
             return card;
@@ -172,7 +172,7 @@ namespace KnitLink
             var baseI = UIKit.Img("Base", parent, UIKit.Rounded, shade); UIKit.Stretch(baseI.rectTransform);
             var im = UIKit.Img("Face", baseI.rectTransform, UIKit.Rounded, bg, true); UIKit.Stretch(im.rectTransform); im.rectTransform.offsetMin = new Vector2(0, 14);
             if (!string.IsNullOrEmpty(label)) { var t = UIKit.Display(UIKit.Txt("Label", im.transform, label, size, fg)); UIKit.Stretch(t.rectTransform, 10); }
-            var b = baseI.gameObject.AddComponent<Button>(); b.targetGraphic = im; if (act != null) b.onClick.AddListener(() => act()); else b.interactable = false;
+            var b = baseI.gameObject.AddComponent<Button>().WithHaptic(); b.targetGraphic = im; if (act != null) b.onClick.AddListener(() => act()); else b.interactable = false;
             var cb = b.colors; cb.disabledColor = Color.white; b.colors = cb;
             return b;
         }

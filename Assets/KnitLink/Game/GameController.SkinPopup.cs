@@ -65,7 +65,7 @@ namespace KnitLink
             float hgt = parent.rect.height; if (sp != null && hgt > 1) baseI.pixelsPerUnitMultiplier = sp.rect.height / hgt;
             var face = UIKit.Img("Face", baseI.rectTransform, null, new Color(1, 1, 1, 0), true); UIKit.Stretch(face.rectTransform); face.rectTransform.offsetMin = new Vector2(0, 14);
             if (!string.IsNullOrEmpty(label)) { var t = UIKit.Display(UIKit.Txt("Label", face.transform, label, size, Color.white)); UIKit.Stretch(t.rectTransform, 10); ButtonTextShadow(t); }
-            var b = baseI.gameObject.AddComponent<Button>(); b.targetGraphic = baseI; if (act != null) b.onClick.AddListener(() => act()); else b.interactable = false;
+            var b = baseI.gameObject.AddComponent<Button>().WithHaptic(); b.targetGraphic = baseI; if (act != null) b.onClick.AddListener(() => act()); else b.interactable = false;
             var cb = b.colors; cb.disabledColor = Color.white; b.colors = cb;
             return b;
         }
@@ -101,7 +101,7 @@ namespace KnitLink
         {
             var x = UIKit.SkinImg("Close", card, "btn-cancel", true); var xrt = x.rectTransform;
             xrt.anchorMin = xrt.anchorMax = new Vector2(1, 1); xrt.sizeDelta = new Vector2(SkinPop.CloseSize, SkinPop.CloseSize); xrt.anchoredPosition = new Vector2(SkinPop.CloseX, SkinPop.CloseY);
-            x.gameObject.AddComponent<Button>().onClick.AddListener(() => onClose());
+            x.gameObject.AddComponent<Button>().WithHaptic().onClick.AddListener(() => onClose());
         }
         void SkinProgress(RectTransform bar, int pct)
         {
@@ -148,7 +148,7 @@ namespace KnitLink
             };
             draw();
             Coroutine slide = null;
-            track.gameObject.AddComponent<Button>().onClick.AddListener(() =>
+            track.gameObject.AddComponent<Button>().WithHaptic().onClick.AddListener(() =>
             {
                 PlayerPrefs.SetInt("kl.set." + key, SettingOn(key) ? 0 : 1); ApplySettings(); Sfx.Play(Sfx.Tap); if (key == "vibe") Buzz();
                 if (slide != null) StopCoroutine(slide);

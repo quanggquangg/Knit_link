@@ -149,7 +149,7 @@ namespace KnitLink
             rt.anchorMin = rt.anchorMax = new Vector2(0, .5f); rt.pivot = new Vector2(0, .5f); rt.sizeDelta = new Vector2(Lay.Btn, Lay.Btn); rt.anchoredPosition = new Vector2(x, 0);
             im.gameObject.AddComponent<Shadow>().effectColor = PaleShadow; im.GetComponent<Shadow>().effectDistance = new Vector2(0, -11);
             var ic = UIKit.Img("Icon", rt, icon, UIKit.Hex("#3d2f28")); ic.rectTransform.sizeDelta = new Vector2(70, 70);
-            var b = im.gameObject.AddComponent<Button>(); b.onClick.AddListener(() => act()); return b;
+            var b = im.gameObject.AddComponent<Button>().WithHaptic(); b.onClick.AddListener(() => act()); return b;
         }
         /// <summary>Make a Rounded image fully round at its current height (pill / capsule).</summary>
         static void Pill(Image im, float h)

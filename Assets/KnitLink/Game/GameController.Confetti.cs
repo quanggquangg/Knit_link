@@ -27,7 +27,7 @@ namespace KnitLink
             cols.Add(UIKit.Hex("#ffd257")); cols.Add(Color.white); cols.Add(UIKit.Hex("#ff8fb1"));
             var burst = new GameObject("Burst", typeof(RectTransform)).AddComponent<ConfettiBurst>();
             var rt = (RectTransform)burst.transform; rt.SetParent(confettiLayer, false); UIKit.Stretch(rt);
-            burst.Fire(cols);
+            burst.Fire(cols); Haptics.Light();
             PopperSound();
         }
 

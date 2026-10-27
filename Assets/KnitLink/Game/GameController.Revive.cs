@@ -14,7 +14,7 @@ namespace KnitLink
         // ---------- revive (max 2 per picture; the 1st costs coins or one rewarded ad, the 2nd only coins). Popups: GameController.Popups.cs ----------
         void DoRevive(bool stuck)
         {
-            CloseModal(); revives++; KLog.Info("Revive", $"Revive {revives} ({(stuck ? "open the way" : "yarn bag")}) on level {L.num}");
+            CloseModal(); AudioMix.Duck(false); revives++; KLog.Info("Revive", $"Revive {revives} ({(stuck ? "open the way" : "yarn bag")}) on level {L.num}");
             if (stuck)
             {
                 var picks = S.OpenPathPicks(); if (picks.Count == 0) { Toast("No yarn left to pull."); return; }

@@ -20,6 +20,10 @@ namespace KnitLink
             public const float MinHeight = 2100;   // below this the column is scaled down to keep the board big enough
         }
         RectTransform screenRT;   // the whole screen (background, popups, dim, confetti, coach)
+        /// <summary>Editor test hook (27/10): pretend the phone has this safe area (pixels, like Screen.safeArea), e.g. an iPhone
+        /// notch, to check the layout without a device. null = the real Screen.safeArea. Set it while playing; the layout updates.</summary>
+        public static Rect? SimSafeArea;
+        static Rect SafeArea => Application.isEditor && SimSafeArea.HasValue ? SimSafeArea.Value : Screen.safeArea;
         Vector2 fitScreen; Rect fitSafe;
 
         /// <summary>Make the canvas, the full-screen layer and the 1080-wide column. Returns the column (= root).</summary>
@@ -37,7 +41,7 @@ namespace KnitLink
         void ApplyScreenFit()
         {
             if (screenRT == null) return;
-            float w = Screen.width, h = Screen.height; fitScreen = new Vector2(w, h); fitSafe = Screen.safeArea;
+            float w = Screen.width, h = Screen.height; fitScreen = new Vector2(w, h); fitSafe = SafeArea;
             float scale = Mathf.Min(w / Fit.ColumnW, h / Fit.MinHeight);
             canvas.GetComponent<CanvasScaler>().scaleFactor = scale;
             // notch / camera hole: push the top of the column down (the background stays full screen)
@@ -54,7 +58,7 @@ namespace KnitLink
         void CheckScreenFit()
         {
             if (screenRT == null) return;
-            if (fitScreen.x == Screen.width && fitScreen.y == Screen.height && fitSafe == Screen.safeArea) return;
+            if (fitScreen.x == Screen.width && fitScreen.y == Screen.height && fitSafe == SafeArea) return;
             ApplyScreenFit();
             Canvas.ForceUpdateCanvases();
             if (S != null && cells.Count > 0) { BuildBoard(); RenderAll(); }   // the board area changed: lay the spots out again
