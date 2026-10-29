@@ -5,6 +5,8 @@
 // WHAT THIS FILE DOES: finds a file, turns it into a Sprite (cached) and makes the few pieces the art needs at runtime
 //   (the source files are never modified):
 //   - Ball(c): yarn ball trimmed and centred on a square, so every color sits the same (the artist's canvases differ)
+//     Ball files (28/10): "Item fix/<color>-ball" (the artist's new set) when present, else "Ingame/Asset/<color>-ball".
+//   - Mystery(): the "?" yarn ball ("Item fix/mystery-yarn"), trimmed the same way; null = the game draws its gray placeholder
 //   - Basket(c) / BasketFront(c): basket with handle (back) and the front lip (no handle); the taller file is the one with the handle
 //   - RopeTile(c) / RopeCorner(c): seamless straight rope (wire1 straightened, one twist period) and a 90° corner bent from it
 //   - BagFront: the open bag (bag1) cut below its mouth rim, drawn over balls dropping in
@@ -80,21 +82,64 @@ namespace KnitLink
 
         // ---------- yarn ----------
         /// <summary>Yarn ball trimmed and centred on a square canvas (row 0 = bottom in Unity).</summary>
-        public static Sprite Ball(string c)
+        /// <summary>File of a yarn ball: the newer "Item fix" set first (28/10), then the first set.</summary>
+        public static string BallFile(string c)
         {
-            string key = "ball#" + c; if (cache.TryGetValue(key, out var s)) return s;
-            var t = Tex("Ingame/Asset/" + ArtColor(c) + "-ball"); if (t == null) { cache[key] = null; return null; }
-            var px = Pixels(t, out int w, out int h); if (px == null) return cache[key] = Get("Ingame/Asset/" + ArtColor(c) + "-ball");
-            int x0 = w, y0 = h, x1 = -1, y1 = -1;
-            for (int y = 0; y < h; y++) for (int x = 0; x < w; x++) if (px[y * w + x].a > 8) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
-            int bw = x1 - x0 + 1, bh = y1 - y0 + 1, S = Mathf.Max(bw, bh) + 4;
-            var o = new Color32[S * S]; int ox = (S - bw) / 2, oy = (S - bh) / 2;
-            for (int y = 0; y < bh; y++) for (int x = 0; x < bw; x++) o[(y + oy) * S + x + ox] = px[(y + y0) * w + x + x0];
-            // the round body without the loose strand: centre of the solid pixels, radius from their area
-            long n = 0; double sx = 0, sy = 0;
-            for (int y = 0; y < S; y++) for (int x = 0; x < S; x++) if (o[y * S + x].a > 128) { n++; sx += x; sy += y; }
-            if (n > 0) body[c] = (new Vector2((float)(sx / n + .5) / S - .5f, (float)(sy / n + .5) / S - .5f), Mathf.Sqrt(n / Mathf.PI) / S);
+            string f = "Item fix/" + ArtColor(c) + "-ball"; return Tex(f) != null ? f : "Ingame/Asset/" + ArtColor(c) + "-ball";
+        }
+        /// <summary>The "?" yarn ball (artist file Item fix/mystery-yarn), trimmed and centred like the balls. null when missing.</summary>
+        public static Sprite Mystery() => Trimmed("ball#?", "Item fix/mystery-yarn", null);
+        public static Sprite Ball(string c) => Trimmed("ball#" + c, BallFile(c), c);
+        /// <summary>Size of the round yarn body in every ball picture (fraction of the square picture), user 29/10: every color
+        /// (and the "?" ball) must show the same yarn size; needles, sticks and loose strands do not count. The space around
+        /// the body holds those extras (the widest artist ball reaches 1.32 × the body radius), so on screen the ball
+        /// Image is drawn BallBoost times bigger than before to keep the yarn about the size it had.</summary>
+        public const float BodyFrac = .76f, BallBoost = .87f / BodyFrac;
+        static Sprite Trimmed(string key, string file, string c)
+        {
+            if (cache.TryGetValue(key, out var s)) return s;
+            var t = Tex(file); if (t == null) { cache[key] = null; return null; }
+            var px = Pixels(t, out int w, out int h); if (px == null) return cache[key] = Get(file);
+            var (cx, cy, r) = YarnBody(px, w, h);
+            // square picture centred on the yarn body; the body is always BodyFrac of it, whatever the needles / strands do
+            int S = Mathf.CeilToInt(2 * r / BodyFrac); var o = new Color32[S * S];
+            int ox = Mathf.RoundToInt(cx - S / 2f), oy = Mathf.RoundToInt(cy - S / 2f);
+            for (int y = 0; y < S; y++) for (int x = 0; x < S; x++)
+                {
+                    int sx = x + ox, sy = y + oy; if (sx < 0 || sy < 0 || sx >= w || sy >= h) continue;
+                    o[y * S + x] = px[sy * w + sx];
+                }
+            if (c != null) body[c] = (Vector2.zero, BodyFrac / 2);
             return FromPixels(key, o, S, S);
+        }
+        /// <summary>Centre and radius of the round yarn body: the solid pixels (holes filled) after an "opening" with a disk,
+        /// which removes thin parts (needles, sticks, strands); radius from the remaining area.</summary>
+        static (float cx, float cy, float r) YarnBody(Color32[] px, int w, int h)
+        {
+            var solid = new bool[w * h]; for (int i = 0; i < solid.Length; i++) solid[i] = px[i].a > 128;
+            // fill holes: whatever the outside can't reach is inside the ball
+            var outside = new bool[w * h]; var st = new Stack<int>();
+            for (int x = 0; x < w; x++) { st.Push(x); st.Push((h - 1) * w + x); }
+            for (int y = 0; y < h; y++) { st.Push(y * w); st.Push(y * w + w - 1); }
+            while (st.Count > 0) { int i = st.Pop(); if (outside[i] || solid[i]) continue; outside[i] = true; int x = i % w, y = i / w;
+                if (x > 0) st.Push(i - 1); if (x < w - 1) st.Push(i + 1); if (y > 0) st.Push(i - w); if (y < h - 1) st.Push(i + w); }
+            for (int i = 0; i < solid.Length; i++) solid[i] = !outside[i];
+            int R = Mathf.Max(3, Mathf.RoundToInt(Mathf.Min(w, h) * .09f));   // thinner than this = an extra, not yarn
+            var disk = new List<(int dx, int dy)>(); for (int dy = -R; dy <= R; dy++) for (int dx = -R; dx <= R; dx++) if (dx * dx + dy * dy <= R * R) disk.Add((dx, dy));
+            var eroded = new bool[w * h];
+            for (int y = 0; y < h; y++) for (int x = 0; x < w; x++)
+                {
+                    if (!solid[y * w + x]) continue; bool ok = true;
+                    foreach (var (dx, dy) in disk) { int X = x + dx, Y = y + dy; if (X < 0 || Y < 0 || X >= w || Y >= h || !solid[Y * w + X]) { ok = false; break; } }
+                    eroded[y * w + x] = ok;
+                }
+            var opened = new bool[w * h];
+            for (int y = 0; y < h; y++) for (int x = 0; x < w; x++)
+                    if (eroded[y * w + x]) foreach (var (dx, dy) in disk) opened[(y + dy) * w + x + dx] = true;
+            long n = 0; double sx = 0, sy = 0;
+            for (int y = 0; y < h; y++) for (int x = 0; x < w; x++) if (opened[y * w + x]) { n++; sx += x; sy += y; }
+            if (n == 0) return (w / 2f, h / 2f, Mathf.Min(w, h) / 2f * BodyFrac);
+            return ((float)(sx / n) + .5f, (float)(sy / n) + .5f, Mathf.Sqrt(n / Mathf.PI));
         }
         static readonly Dictionary<string, (Vector2 centre, float radius)> body = new Dictionary<string, (Vector2, float)>();
         /// <summary>Where the round body of the Ball(c) picture is (the strand of yarn makes the picture off-centre):

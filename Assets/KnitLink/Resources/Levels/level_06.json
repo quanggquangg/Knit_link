@@ -1,7 +1,7 @@
 {
   "name": "Cozy Cottage",
   "tag": "Hidden yarn",
-  "difficulty": "hard",
+  "difficulty": "medium",
   "intro": "hidden",
   "roll": "none",
   "baskets": [
@@ -15,12 +15,12 @@
     { "color": "B", "part": "sky" }
   ],
   "board": [
-    "B    _    _    R    R",
-    "_    C/B  B    C    G",
-    "G    C/G  R    C    B",
-    "G    B    B    R/B  R",
-    "C/R  C    R    G    G",
-    "C    C    G/B  R    G"
+    "C/R  R    R    B    B",
+    "G    G/R  C    G    B/R",
+    "R    C/R  G    G    B",
+    "C    B    C/B  G/B  _",
+    "C    _    C    _    G",
+    "G    C    R    B    _"
   ],
   "picture": [
     "777777777777777777777777",

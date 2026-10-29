@@ -22,6 +22,9 @@ namespace KnitLink
             yield return HardBanner(my);
             if (my != token) yield break;
             // a booster unlocks at its level NUMBER (GameConfig), whatever level file sits there
+            // The unlock popup + Claim (+2 boosters) comes right at the start (29/10). For Undo / Hint the guided FREE first use then
+            // waits until the shelf is nearly full (CheckArmed, GameController.Feedback.cs); if that never happens it waits on the next levels.
+            armed = new[] { "undo", "hint" }.FirstOrDefault(k => L.num >= Unlock[k] && Claimed(k) && !Coached(k));
             foreach (var k in BKeys)
                 if (L.num == Unlock[k] && !Claimed(k)) { yield return new WaitForSecondsRealtime(.35f); if (my == token) BoosterIntro(k); yield break; }
             if (string.IsNullOrEmpty(L.intro)) yield break;
@@ -92,7 +95,8 @@ namespace KnitLink
         {
             PlayerPrefs.SetInt("kl.claimed." + k, 1); SetInv(k, Inv(k) + Cfg.boostersOnUnlock); CloseModal(); RenderBoosters(); Sfx.Play(Sfx.Unlock);
             StartCoroutine(Bump((RectTransform)bButtons[k].transform, 1.16f));
-            StartCoroutine(CoachBoosterWhenReady(k, token));
+            if (k == "undo" || k == "hint") armed = k;   // free guided use when the shelf is nearly full (CheckArmed)
+            else StartCoroutine(CoachBoosterWhenReady(k, token));
         }
         /// <summary>Short line after the free first use: what the booster just did (user 25/10: clearer than "used for free"; no count –
         /// during this first use the button shows "Free" instead of the number, see FreeBadge).</summary>

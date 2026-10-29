@@ -14,12 +14,12 @@
     { "color": "B", "part": "sky" }
   ],
   "board": [
-    "B    R  B    C*4  C",
-    "C*4  .  _    B    O",
-    "B    C  C/O  O    C",
-    "C    _  B    R    C",
-    "C    B  C    .    O",
-    "C/R  C  B    R    B"
+    "O    C  C    B    B",
+    "B    .  _    R*3  C",
+    "B/C  O  O    C    C",
+    "C    R  B/C  B    C",
+    "C    O  R    .    _",
+    "B    R  C    B*3  C"
   ],
   "picture": [
     "666666666666666666666666",

@@ -15,22 +15,23 @@
     { "color": "C", "part": "plate" },
     { "color": "P", "part": "table" },
     { "color": "T", "part": "wall" },
-    { "color": "T", "part": "high wall" }
+    { "color": "T", "part": "lower high wall" },
+    { "color": "T", "part": "upper high wall" }
   ],
   "board": [
-    "R    R    Y  P   V/Y  _",
-    "V    C/T  P  T   P    P",
-    "T/C  C    T  T   C    C/Y",
-    "V    X2   P  X2  P    P",
-    "C    P    P  T   T    P",
-    "Y    V    C  T   R    Y",
-    "Y    C/P  R  Y   Y    P"
+    "P/T?  T    T    Y    T  _",
+    "T     X2   Y/P  T    R  P",
+    "V     C    P    C    R  T",
+    "C     P/T  P    T/V  P  T",
+    "V     P    V/P  P    Y  P/C",
+    "C     T    Y    T    P  Y",
+    "C     Y?   R/Y  Y/C  C  R"
   ],
   "picture": [
-    "aaaaaaaaaaa00aaaaaaaaaaa",
-    "aaaaaaaaaaa00aaaaaaaaaaa",
-    "aaaaaaaaaaa11aaaaaaaaaaa",
-    "aaaaaaaaaaa11aaaaaaaaaaa",
+    "bbbbbbbbbbb00bbbbbbbbbbb",
+    "bbbbbbbbbbb00bbbbbbbbbbb",
+    "bbbbbbbbbbb11bbbbbbbbbbb",
+    "bbbbbbbbbbb11bbbbbbbbbaa",
     "aaaaaaaaaaa11aaaaaaaaaaa",
     "aaaaaaaaa221122aaaaaaaaa",
     "aaaaaaaa22222222aaaaaaaa",

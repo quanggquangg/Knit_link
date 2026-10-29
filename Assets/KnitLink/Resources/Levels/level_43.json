@@ -20,13 +20,13 @@
     { "color": "T", "part": "high wall" }
   ],
   "board": [
-    "P    T/B/Y  C    P    C    P",
-    "P    T      C    Y    B    C",
-    "C    P      T    T    C    _",
-    "C    C      Y/G  T    C    B/C",
-    "C    G      T    C    B/Y  T/B/P",
-    "C    B      G    B    _    C",
-    "B/C  P      _    T/C  P    G"
+    "C/T/G  C    P/C  B/T/G  T  C",
+    "P/C    _    C    C      T  C/P/B",
+    "B      C    P    B/C    Y  P",
+    "_      P    Y    T      Y  _",
+    "C      G    G    _      C  T",
+    "B      C/T  C    P      B  Y",
+    "C      T    B    C      P  B"
   ],
   "picture": [
     "bbbbbbbbbbbbbbbbbbbbbbbb",

@@ -15,6 +15,7 @@
 //   R O Y G T B V P C  one yarn ball of that color (see ColorCodes below)
 //   R/B                a stack: R is hidden below, B is on top (left = bottom). Max 3 balls.
 //   B*4                frozen ball: it thaws after 4 valid matches anywhere
+//   R?  B/R?           "?" mystery ball on top (28/10): gray until a ball next to it leaves
 //   X2                 tangle with 2 hit points (no ball)
 //   _                  empty spot
 //   .                  gap (no spot at all)
@@ -56,7 +57,7 @@ namespace KnitLink
     {
         public const int PictureSize = 24;   // picture is PictureSize × PictureSize stitches
         public static readonly string[] Difficulties = { "easy", "medium", "hard", "superhard" };
-        public static readonly string[] Intros = { "", "howto", "shelf", "gaps", "hidden", "tangles", "deep", "ice", "roll", "box", "belt" };
+        public static readonly string[] Intros = { "", "howto", "shelf", "gaps", "hidden", "mystery", "tangles", "deep", "ice", "roll", "box", "belt" };
         public static readonly string[] Rolls = { "none", "down", "up", "left", "right" };
 
         // ------------------------------------------------------------------ read
@@ -86,7 +87,7 @@ namespace KnitLink
             {
                 case "howto": L.intro = "howto"; L.introKey = ""; break;
                 case "shelf": case "gaps": L.intro = "tip"; L.introKey = intro; break;
-                case "hidden": case "tangles": case "deep": case "ice": case "box": case "belt": L.intro = "mech"; L.introKey = intro; break;
+                case "hidden": case "mystery": case "tangles": case "deep": case "ice": case "box": case "belt": L.intro = "mech"; L.introKey = intro; break;
                 case "roll": L.intro = "roll"; L.introKey = L.roll; if (L.roll == "") errors.Add($"{file}: intro 'roll' needs a roll direction"); break;
                 default: L.intro = ""; L.introKey = ""; break;
             }
@@ -130,6 +131,7 @@ namespace KnitLink
                         ballsPart = tok.Substring(0, star);
                         if (!int.TryParse(tok.Substring(star + 1), out frozen) || frozen < 1) { errors.Add(where + ": ice count after * must be a number ≥ 1"); frozen = 3; }
                     }
+                    bool mystery = ballsPart.EndsWith("?"); if (mystery) ballsPart = ballsPart.Substring(0, ballsPart.Length - 1);
                     var balls = new List<string>();
                     foreach (var part in ballsPart.Split('/'))
                     {
@@ -137,7 +139,7 @@ namespace KnitLink
                         balls.Add(col);
                     }
                     if (balls.Count > 3) errors.Add(where + ": a stack can hold at most 3 balls");
-                    stacks.Add(new StackDef { balls = balls.ToArray() }); tangles.Add(0); ice.Add(frozen);
+                    stacks.Add(new StackDef { balls = balls.ToArray(), mystery = mystery }); tangles.Add(0); ice.Add(frozen);
                 }
                 shape[y] = sb.ToString();
             }
@@ -206,7 +208,7 @@ namespace KnitLink
             int hp = L.board.tangles != null && t < L.board.tangles.Length ? L.board.tangles[t] : 0;
             int ice = L.board.ice != null && t < L.board.ice.Length ? L.board.ice[t] : 0;
             if (balls.Length == 0) return hp > 0 ? "X" + hp : "_";
-            string s = string.Join("/", balls.Select(b => ColorCodes.Letter(b).ToString()));
+            string s = string.Join("/", balls.Select(b => ColorCodes.Letter(b).ToString())) + (L.board.stacks[t].mystery ? "?" : "");
             return ice > 0 ? s + "*" + ice : s;
         }
 

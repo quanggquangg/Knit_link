@@ -76,6 +76,8 @@ namespace KnitLink
             RenderShelf(); RenderBoosters();
             if (doneEv.Count > 0)
             {
+                yield return Cheer(doneEv, my);   // Nice! / Great! / Perfect! before the basket flies off (GameController.Feedback.cs)
+                if (my != token) yield break;
                 Sfx.Play(Sfx.Pour);
                 var knits = doneEv.Select(d => StartCoroutine(Knit(d.basketId, d.li, d.c, my))).ToList();
                 RenderBaskets(false);
@@ -104,7 +106,7 @@ namespace KnitLink
             if (delay > 0) yield return new WaitForSecondsRealtime(delay);
             onStart?.Invoke();
             var im = UIKit.YarnImg("Fly", fx, c); im.preserveAspect = true; if (SK) UIKit.DropShadow(im, 16, 12, ShadowNavy); var rt = im.rectTransform;
-            float size = cs * .84f; rt.sizeDelta = new Vector2(size, size); rt.position = from;
+            float size = cs * .84f * (SK ? Skin.BallBoost : 1); rt.sizeDelta = new Vector2(size, size); rt.position = from;
             for (float t = 0; t < dur; t += Time.unscaledDeltaTime)
             {
                 float p = Mathf.Clamp01(t / dur), e = p < .5f ? 2 * p * p : 1 - Mathf.Pow(-2 * p + 2, 2) / 2;

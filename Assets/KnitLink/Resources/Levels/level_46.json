@@ -19,23 +19,24 @@
     { "color": "G", "part": "tree" },
     { "color": "C", "part": "snow" },
     { "color": "B", "part": "low sky" },
-    { "color": "B", "part": "sky" },
-    { "color": "Y", "part": "stars" }
+    { "color": "B", "part": "lower sky" },
+    { "color": "Y", "part": "stars" },
+    { "color": "B", "part": "upper sky" }
   ],
   "board": [
-    "B/G/C  O    Y      R      B    O/B*4",
-    "G      O    O      G      C/G  R*5",
-    "B/O    C    B/R/C  Y/R/C  C    _",
-    "_      O    C/B    C/O    C/O  Y",
-    "C      Y/B  C      R      C/R  C/G/O",
-    "G      C    B/O    R/C    Y/R  Y",
-    "Y      _    C/G/Y  _      O/G  O"
+    "G/C    _      Y/B  C/B    B       B/Y",
+    "C/O    B      C    O*5    B       B/G",
+    "O      Y/C    O    R      C/G/R?  B",
+    "G/B    Y      O?   O      B/C     G?",
+    "Y/C/R  Y      O    C      O       G",
+    "R      Y/O/R  R    O/C*4  C       C",
+    "C/R    C/O?   Y/C  B/G    R/O     G/B/C"
   ],
   "picture": [
-    "dddddddddddddddddd9ddddd",
-    "dddddddddddddddde9dddddd",
-    "ddeeddddddddddddd9dddddd",
-    "dddddddddddddddd9ddddddd",
+    "ffffffffffffffffff9fffff",
+    "ffffffffffffffffe9ffffff",
+    "ffeefffffffffffff9ffffff",
+    "ffffffffffffffff9ffffffd",
     "dddddddddd33ddd77ddddedd",
     "ddddddddd3333dd77ddddedd",
     "ddddddee333333d77ddddddd",

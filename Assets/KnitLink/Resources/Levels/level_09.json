@@ -1,7 +1,7 @@
 {
   "name": "Lemon Slice",
   "tag": "Fresh",
-  "difficulty": "medium",
+  "difficulty": "easy",
   "intro": "",
   "roll": "none",
   "baskets": [
@@ -15,12 +15,12 @@
     { "color": "B", "part": "plate" }
   ],
   "board": [
-    "C    C    C    C    Y",
-    "C    B    .    B/Y  C",
-    "Y    P    G/B  C    Y",
-    "G/Y  C    G    C    P",
-    "C    G/P  .    B/P  Y",
-    "C    Y    Y    C    _"
+    "Y/C  Y  C  C  G?",
+    "C    C  .  Y  Y/C",
+    "P    C  B  B  C",
+    "P/B  P  C  G  P",
+    "Y    C  .  Y  C",
+    "G/B  Y  Y  G  C"
   ],
   "picture": [
     "555555555555555555555555",

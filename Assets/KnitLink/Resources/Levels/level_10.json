@@ -11,18 +11,19 @@
     { "color": "R", "part": "red stripes" },
     { "color": "Y", "part": "yellow stripes" },
     { "color": "Y", "part": "sun" },
-    { "color": "B", "part": "low sky" },
+    { "color": "B", "part": "lower low sky" },
     { "color": "B", "part": "mid sky" },
     { "color": "B", "part": "high sky" },
-    { "color": "C", "part": "clouds" }
+    { "color": "C", "part": "clouds" },
+    { "color": "B", "part": "upper low sky" }
   ],
   "board": [
-    "B/R    G      G    Y   Y    Y",
-    "Y      C/B/R  _    X2  B    Y",
-    "C/B/R  X2     B/C  Y   C/B  R",
-    "G      X2     Y    Y   B/R  Y",
-    "R      R      B    B   B    Y",
-    "G      Y      R    B   B/Y  _"
+    "R      B/Y    B  Y  B/Y?  R",
+    "Y      R      R  G  B     B",
+    "C      B      C  _  B/C   Y",
+    "B?     B/R    B  B  Y     Y",
+    "Y/B/G  Y/C/R  B  R  R/Y   B?",
+    "G      Y      Y  B  B?    G"
   ],
   "picture": [
     "888888888888888888888888",
@@ -39,9 +40,9 @@
     "777773334433344333999997",
     "777777334433344337777777",
     "777777334433344337777777",
-    "666666634433344366666666",
-    "666666666433346666666666",
-    "666666666633366666666666",
+    "aaaaaaa344333443aaaaaaaa",
+    "aaaaaaaaa43334aaaaaaaaaa",
+    "aaaaaaaaaa333aaaaaaa6666",
     "666666666211662666666666",
     "666666661122226666666661",
     "166666111122221166666111",

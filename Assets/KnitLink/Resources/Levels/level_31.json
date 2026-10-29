@@ -17,13 +17,13 @@
     { "color": "B", "part": "sky" }
   ],
   "board": [
-    "O    Y  O   O  O  Y",
-    "O    B  X2  B  C  Y",
-    "Y    C  B   B  G  _",
-    "G    G  B   O  C  Y",
-    "G    C  X2  B  G  G",
-    "B/Y  G  B   G  G  O",
-    "G    Y  G   Y  G  O"
+    "Y  Y  B  O   B/G  C",
+    "B  B  G  G   G    _",
+    "B  Y  Y  C   B    O",
+    "Y  G  B  G   G    G",
+    "B  C  G  X2  O    Y",
+    "C  G  O  G   O    _",
+    "Y  O  O  O   Y    G"
   ],
   "picture": [
     "999999999999999999999999",

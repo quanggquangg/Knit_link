@@ -1,7 +1,7 @@
 """Knit Link – renders every game sound + the background music into WAV files (27/10).
 
 Output: Assets/KnitLink/Resources/Sounds/<name>.wav  (the game plays a file there instead of its code-made sound, see Game/Sfx.cs)
-Run:    python render_sounds.py <output folder>        (needs numpy + scipy)
+Run:    python render_sounds.py <output folder> [only,these,names]        (needs numpy + scipy)
 
 Sound palette ("cozy knitting"): a soft marimba / wooden pluck for notes, felt drum for hits, filtered paper noise for
 whooshes, a small room reverb on everything, all in C major pentatonic so sounds never clash with the music.
@@ -175,8 +175,22 @@ def s_superhard():  # SUPER HARD warning: stronger - three drum hits, three fall
     place(x, glide(660, 990, .25, .12, 'tri'), .2); place(x, glide(660, 990, .25, .12, 'tri'), .6)
     return finish(x, -5, .22)
 
+def s_ting():       # full basket celebrates (28/10): bright marimba + small bell on C. The game raises the pitch per combo
+    x = track(.7); place(x, marimba(N['C6'], .45, 1, 9, 1.2), 0); place(x, bell(N['C7'], .5, .45, 6), .01)
+    place(x, bell(N['G6'], .4, .18, 7), .05); return finish(x, -9, .2)   # step (pentatonic, see FB.ComboSemitones)
+
+def s_rustle():     # a tangle loosens one step (28/10): soft wool "sột" – short band noise + two fluffy ticks
+    x = track(.35); place(x, noise(.2, 500, 2600, 1, .008, 14), 0)
+    place(x, noise(.05, 1500, 5000, .35, .001, 45), .04); place(x, noise(.05, 1200, 4500, .3, .001, 45), .11)
+    return finish(x, -10, .08)
+
+def s_reveal():     # a "?" ball shows its color (28/10): tiny rising pop + soft sparkle
+    x = track(.5); place(x, glide(500, 900, .09, .6), 0); place(x, marimba(N['E6'], .3, .7, 12), .05)
+    place(x, bell(N['A6'], .35, .25, 8), .09); return finish(x, -11, .15)
+
 SOUNDS = dict(tap=s_tap, link=s_link, clink=s_clink, shelf=s_shelf, err=s_err, pour=s_pour, done=s_done, boost=s_boost,
-              unlock=s_unlock, win=s_win, fail=s_fail, bagopen=s_bagopen, baglift=s_baglift, hard=s_hard, superhard=s_superhard)
+              unlock=s_unlock, win=s_win, fail=s_fail, bagopen=s_bagopen, baglift=s_baglift, hard=s_hard, superhard=s_superhard,
+              ting=s_ting, rustle=s_rustle, reveal=s_reveal)
 
 
 # ---------------------------------------------------------------- background music
@@ -227,6 +241,9 @@ def write_wav(path, x):
 if __name__ == '__main__':
     out = sys.argv[1] if len(sys.argv) > 1 else 'Sounds'
     os.makedirs(out, exist_ok=True)
+    only = sys.argv[2].split(',') if len(sys.argv) > 2 else None   # e.g. ting,rustle,reveal: render just these (others keep their files)
     for name, fn in SOUNDS.items():
+        if only and name not in only: continue
         x = fn(); write_wav(os.path.join(out, name + '.wav'), x); print(f'{name:10s} {len(x) / SR:.2f}s')
+    if only: sys.exit(0)
     m = s_music(); write_wav(os.path.join(out, 'music.wav'), m); print(f'music      {len(m) / SR:.1f}s (loop)')

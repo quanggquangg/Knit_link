@@ -1,7 +1,7 @@
 {
   "name": "Sleepy Cat",
   "tag": "Extra Shelf",
-  "difficulty": "easy",
+  "difficulty": "medium",
   "intro": "",
   "roll": "none",
   "baskets": [
@@ -13,24 +13,25 @@
     { "color": "T", "part": "eyes" },
     { "color": "C", "part": "window frame" },
     { "color": "T", "part": "window glass" },
-    { "color": "V", "part": "wall" },
-    { "color": "P", "part": "yarn ball" }
+    { "color": "V", "part": "lower wall" },
+    { "color": "P", "part": "yarn ball" },
+    { "color": "V", "part": "upper wall" }
   ],
   "board": [
-    "O  T/C  P/T  P    O    T",
-    "O  V/P  V/O  T    _    C",
-    "T  O    C    V    C    O",
-    "V  X2   T    T    T/O  O",
-    "P  X2   C/T  O/C  O    T",
-    "C  O    O    T    T    C"
+    "C/O  T    C    T/V  O   P",
+    "C    T    C?   V    V   V/P",
+    "T/O  O    X2   T    V?  T/C",
+    "P    V/O  O/V  O/C  T   O/T",
+    "_    V/T  P?   X2   C   O",
+    "C    O    O    T/O  T   T"
   ],
   "picture": [
-    "888888888888888888888888",
-    "888888888888888888888888",
-    "886666666688888888888888",
-    "886776677688888888888888",
-    "886776677688888888888888",
-    "886666666688888888888888",
+    "aaaaaaaaaaaaaaaaaaaaaaaa",
+    "aaaaaaaaaaaaaaaaaaaaaaaa",
+    "aa66666666aaaaaaaaaaaaaa",
+    "aa67766776aaaaaaaaaaaaaa",
+    "aa67766776aaaaaaaaaaaaaa",
+    "aa66666666aaaaaaaaaaaaa8",
     "886776677688888888888888",
     "886776677688848888884888",
     "886776677688844888844888",

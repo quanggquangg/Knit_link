@@ -99,6 +99,7 @@ namespace KnitLink
         {
             public RectTransform rt; public Image hit, shadow, back, front, knot, selRing, ice; public Text backCount, iceCount;
             public int shownTop = -1, shownHp, shownCount, shownIce;
+            public Text mq; public bool shownMystery;   // "?" ball (28/10, GameController.Feedback.cs)
         }
         class BasketView
         {

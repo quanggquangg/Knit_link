@@ -17,12 +17,12 @@
     { "color": "T", "part": "high wall" }
   ],
   "board": [
-    "T  O  C   V    R  R",
-    "O  C  C   V    C  R",
-    "T  T  _   C    T  C/R",
-    "T  V  T   V    T  R",
-    "C  C  X2  C    R  C",
-    "R  T  O   C/O  R  C"
+    "R    R  T  C   R  C",
+    "C    T  O  O   R  R",
+    "R    V  C  T   _  T",
+    "T/C  C  V  X2  C  T",
+    "T    C  C  C   R  V",
+    "R/V  O  C  T   C  O"
   ],
   "picture": [
     "888888888888888888888888",

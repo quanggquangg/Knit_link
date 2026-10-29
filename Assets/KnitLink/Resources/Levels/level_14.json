@@ -1,7 +1,7 @@
 {
   "name": "Beach Ball",
   "tag": "Seaside",
-  "difficulty": "medium",
+  "difficulty": "easy",
   "intro": "",
   "roll": "none",
   "baskets": [
@@ -15,12 +15,12 @@
     { "color": "C", "part": "sand" }
   ],
   "board": [
-    ".  B/Y/C  _   Y      B/Y  .",
-    "C  R/C    C   B/Y    B/Y  _",
-    "_  _      X2  R      B/R  _",
-    "R  _      B   _      Y    C",
-    "C  Y      R   X2     R    R",
-    ".  B/C    _   B/Y/R  C    ."
+    ".  R    C  B   C  .",
+    "B  R/Y  Y  R?  R  B",
+    "B  C    C  B   Y  Y/R",
+    "Y  B/Y  _  R   Y  R",
+    "B  Y    _  C   _  C",
+    ".  R    C  C   B  ."
   ],
   "picture": [
     "777777777777777777777777",

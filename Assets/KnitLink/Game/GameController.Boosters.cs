@@ -35,15 +35,17 @@ namespace KnitLink
             if (autoRun || pending > 0) { Toast("Wait for the yarn to land."); return; }
             if (history.Count == 0) { if (!Locked("undo")) Toast("Nothing to undo yet."); else Gate("undo"); return; }
             int g = Gate("undo"); if (g == 0) return;
+            undoInfo.TryGetValue(history.Count, out var back); undoInfo.Remove(history.Count);
             var h = history.Pop(); int cap = S.cap;
             token++; StopAllCoroutines(); foreach (Transform c in fx) Destroy(c.gameObject);
             foreach (var v in basketViews.Values) Destroy(v.rt.gameObject); basketViews.Clear(); basketOrder.Clear(); busyBaskets.Clear(); leavingBaskets.Clear();
             S = h.s; S.cap = Mathf.Max(S.cap, cap); prog = h.prog; moves = h.moves; peak = h.peak; pending = 0; sel = -1;
             posAnims.Clear();
-            foreach (var cv in cells) { cv.shownTop = -1; cv.shownCount = 0; cv.shownHp = 0; SnapHome(cv.front.rectTransform); SnapHome(cv.back.rectTransform); cv.front.rectTransform.localScale = Vector3.one; }
+            foreach (var cv in cells) { cv.shownTop = -1; cv.shownCount = 0; cv.shownHp = 0; cv.shownMystery = false; SnapHome(cv.front.rectTransform); SnapHome(cv.back.rectTransform); cv.front.rectTransform.localScale = Vector3.one; }
             toastRT.gameObject.SetActive(false);
             RenderAll(); Spend("undo", g); KLog.Info("Booster", "Undo used");
             for (int t = 0; t < cells.Count; t++) { cells[t].shownHp = S.tg[t]; cells[t].shownIce = S.Frozen(t) ? S.ice[t] : 0; }
+            combo = 0; Haptics.Light(); UndoBackwards(back);   // simple moves play backwards (28/10)
         }
 
         void UseHint()

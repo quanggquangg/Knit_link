@@ -1,9 +1,11 @@
 // Knit Link – core rules (pure C#, no Unity dependency).
 // Flat board, stacks of up to 3 balls per spot (only the front one can be played; the ones below are hidden),
 // tangles, rolling yarn, ONE basket of 4 taking yarn at a time (the next 2 are shown as a preview),
-// a 6-slot shelf, auto-finish, Onet line rule (max 2 bends), frozen yarn (thaws by 1 on every valid match anywhere),
+// a 6-slot shelf, Onet line rule (max 2 bends), frozen yarn (thaws by 1 on every valid match anywhere),
 // needle box (lid over 2x2 spots, opens after N balls of its color are matched anywhere) and conveyor belt
 // (one full row slides 1 spot after every valid match, the last spot wraps to the front) – both added 23/10.
+// 28/10: "?" mystery balls (a gray front ball shows its color when a ball next to it leaves) and NO auto-finish
+// (AutoFinishOn = false: the player clears every ball by hand).
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +16,9 @@ namespace KnitLink
     public class Ball
     {
         public int id; public string c; public bool hidden;
-        public Ball Copy() => new Ball { id = id, c = c, hidden = hidden };
+        /// <summary>"?" ball (28/10): gray, can't be picked, blocks lines; shows its color when a ball next to it (4 directions) leaves.</summary>
+        public bool mystery;
+        public Ball Copy() => new Ball { id = id, c = c, hidden = hidden, mystery = mystery };
     }
 
     public class Basket
@@ -23,7 +27,7 @@ namespace KnitLink
         public Basket Copy() => new Basket { id = id, li = li, c = c, fill = fill };
     }
 
-    public enum EvKind { Leave, Jar, Shelf, Over, Absorb, Done, Reveal, Tangle, Roll, BagAbsorb, ToBag, Ice, Box, BoxOpen, Belt }
+    public enum EvKind { Leave, Jar, Shelf, Over, Absorb, Done, Reveal, Tangle, Roll, BagAbsorb, ToBag, Ice, Box, BoxOpen, Belt, Mystery }
 
     public struct LeaveItem { public int t; public int id; public string c; }
     public struct RollMove { public int from, to; public bool wrap; }   // wrap: belt only, the spot went from one end of the row to the other
@@ -111,7 +115,7 @@ namespace KnitLink
                 s.stacks[t] = new List<Ball>();
                 var balls = L.board.stacks[t].balls ?? new string[0];
                 for (int i = 0; i < balls.Length; i++)
-                    s.stacks[t].Add(new Ball { id = id++, c = balls[i], hidden = i < balls.Length - 1 });
+                    s.stacks[t].Add(new Ball { id = id++, c = balls[i], hidden = i < balls.Length - 1, mystery = i == balls.Length - 1 && L.board.stacks[t].mystery });
                 s.tg[t] = L.board.tangles != null && t < L.board.tangles.Length ? L.board.tangles[t] : 0;
                 s.ice[t] = L.board.ice != null && t < L.board.ice.Length ? L.board.ice[t] : 0;
             }
@@ -146,7 +150,9 @@ namespace KnitLink
         public int Active => Math.Min(A, q.Count);
         public bool Won => q.Count == 0;
         public int BoardLeft { get { int n = 0; foreach (var st in stacks) n += st.Count; return n; } }
-        public bool CanAuto { get { int n = BoardLeft; return !over && !Won && n > 0 && n <= cap - shelf.Count && !(box != null && box.n > 0); } }
+        /// <summary>Auto-finish switched OFF on 28/10 (feedback item 1). Set true to bring it back.</summary>
+        public static bool AutoFinishOn = false;
+        public bool CanAuto { get { if (!AutoFinishOn) return false; int n = BoardLeft; return !over && !Won && n > 0 && n <= cap - shelf.Count && !(box != null && box.n > 0); } }
         /// <summary>No pair can be joined any more and the level cannot finish by itself.</summary>
         public bool Stuck => !over && !Won && !CanAuto && Pairs().Count == 0;
 
@@ -224,7 +230,7 @@ namespace KnitLink
             var by = new Dictionary<string, List<int>>(); var outp = new List<(int a, int b)>();
             for (int t = 0; t < stacks.Length; t++)
             {
-                var b = Top(t); if (b == null || Frozen(t) || Boxed(t)) continue;
+                var b = Top(t); if (b == null || b.mystery || Frozen(t) || Boxed(t)) continue;
                 if (!by.TryGetValue(b.c, out var l)) by[b.c] = l = new List<int>();
                 l.Add(t);
             }
@@ -341,6 +347,13 @@ namespace KnitLink
                 var b = Top(t);
                 if (b != null && b.hidden) { b.hidden = false; ev?.Add(new GameEvent { k = EvKind.Reveal, t = t, c = b.c }); }
             }
+            // "?" balls next to a spot that a ball just left show their color (before the belt / rolling move things)
+            foreach (int t in list)
+                foreach (int n in geo.nb[t])
+                {
+                    var m = Top(n);
+                    if (m != null && m.mystery) { m.mystery = false; ev?.Add(new GameEvent { k = EvKind.Mystery, t = n, c = m.c }); }
+                }
             foreach (int t in list)
                 foreach (int n in geo.nb[t])
                     if (tg[n] > 0) { tg[n]--; ev?.Add(new GameEvent { k = EvKind.Tangle, t = n, hp = tg[n] }); }
@@ -436,7 +449,7 @@ namespace KnitLink
             for (int t = 0; t < stacks.Length; t++)
             {
                 var st = stacks[t];
-                if (st.Count > 0) { sb.Append(st[st.Count - 1].id).Append('^').Append(st.Count); if (Frozen(t)) sb.Append('i').Append(ice[t]); }
+                if (st.Count > 0) { sb.Append(st[st.Count - 1].id).Append('^').Append(st.Count); if (st[st.Count - 1].mystery) sb.Append('?'); if (Frozen(t)) sb.Append('i').Append(ice[t]); }
                 else sb.Append(tg[t] > 0 ? "T" + tg[t] : "_");
                 sb.Append(',');
             }

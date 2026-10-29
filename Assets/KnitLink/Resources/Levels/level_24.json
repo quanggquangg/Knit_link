@@ -16,12 +16,12 @@
     { "color": "B", "part": "night" }
   ],
   "board": [
-    "G  G    _  C    C   G",
-    "B  B/G  G  C    G   C",
-    "C  B    C  C/B  X2  C",
-    "B  X2   G  B/G  C   C",
-    "C  _    C  B    B   B",
-    "C  C/B  B  B    C   C"
+    "_  G  _    _  _    B",
+    "C  G  C    C  B    B",
+    "B  B  B/C  C  B/G  C",
+    "C  C  C/B  C  G    G",
+    "C  B  B    C  C    B",
+    "G  G  C    G  C    C/B"
   ],
   "picture": [
     "888888888888888888888888",

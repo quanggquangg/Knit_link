@@ -4,7 +4,7 @@
   "difficulty": "easy",
   "intro": "box",
   "roll": "none",
-  "box": { "x": 1, "y": 4, "color": "G", "count": 4 },
+  "box": { "x": 0, "y": 1, "color": "V", "count": 4 },
   "baskets": [
     { "color": "V", "part": "spots" },
     { "color": "V", "part": "head and legs" },
@@ -17,12 +17,12 @@
     { "color": "Y", "part": "background" }
   ],
   "board": [
-    "G  V  G  V  R    G",
-    "R  R  C  C  V    Y",
-    "G  V  G  V  V    V",
-    "V  R  R  Y  C    C",
-    "_  C  Y  R  R    C",
-    "G  C  Y  G  R/C  G"
+    "Y  V  R  G    C  V",
+    "C  G  V  V    R  Y",
+    "C  V  R  R/Y  G  G",
+    "G  V  Y  C    G  C",
+    "R  V  C  R    C  C",
+    "V  G  R  _    R  G"
   ],
   "picture": [
     "888888888888888888888888",

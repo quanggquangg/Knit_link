@@ -18,13 +18,13 @@
     { "color": "C", "part": "snowy ground" }
   ],
   "board": [
-    "C    _  C  R    C    R",
-    "C    R  B  B    B/G  C",
-    "R    B  P  X2   P    B",
-    "B    C  P  P    B    G",
-    "B/R  B  V  V/B  B    C",
-    "G    V  B  C*5  V/C  C",
-    "C    R  R  G    C*5  R"
+    "G  B    _    C  C  B",
+    "V  C    P    C  R  B",
+    "B  R    R    B  P  C",
+    "V  R    B/C  B  C  C",
+    "B  P    B    V  B  C",
+    "G  C    P    B  V  R",
+    "G  B/R  C?   G  R  C/R"
   ],
   "picture": [
     "777777777777777777777777",

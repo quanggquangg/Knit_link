@@ -110,7 +110,7 @@ namespace KnitLink
                 hole.transform.SetSiblingIndex(0); slotHoles.Add(hole);
                 var lk = slotLocks[i]; lk.sprite = Skin.Get("Ingame/shelf-hole2"); lk.color = Color.white; lk.transform.SetParent(shelfRow, false);
                 lk.rectTransform.anchorMin = lk.rectTransform.anchorMax = new Vector2(0, .5f); lk.rectTransform.sizeDelta = new Vector2(94, 42); lk.rectTransform.anchoredPosition = hrt.anchoredPosition;
-                var b = slots[i]; b.rectTransform.sizeDelta = new Vector2(SkinLay.SlotBall, SkinLay.SlotBall); b.rectTransform.anchoredPosition = new Vector2(hrt.anchoredPosition.x, SkinLay.HoleUp + SkinLay.SlotBall * SkinLay.SlotBallUp);
+                var b = slots[i]; b.rectTransform.sizeDelta = new Vector2(SkinLay.SlotBall, SkinLay.SlotBall) * Skin.BallBoost; b.rectTransform.anchoredPosition = new Vector2(hrt.anchoredPosition.x, SkinLay.HoleUp + SkinLay.SlotBall * SkinLay.SlotBallUp);
                 b.preserveAspect = true; b.transform.SetAsLastSibling(); UIKit.DropShadow(b, 6, 5, ShadowWarm);   // demo: drop-shadow(0 2px 2px)
             }
             // no "2/6" row under the shelf any more (user 25/10): the board moves up, the space goes to the iPhone home bar.
@@ -200,7 +200,7 @@ namespace KnitLink
             if (!SK) return;
             var hole = Skin.Get("Ingame/board-hole");
             if (hole != null) { v.shadow.sprite = hole; v.shadow.color = Color.white; v.shadow.rectTransform.sizeDelta = new Vector2(cs * SkinLay.SpotHoleW, cs * SkinLay.SpotHoleH); v.shadow.rectTransform.anchoredPosition = new Vector2(0, -cs * SkinLay.SpotHoleY); }   // hole shadow: wider and lower than the ball so it shows round its foot
-            v.front.rectTransform.sizeDelta = new Vector2(cs * .94f, cs * .94f); v.front.preserveAspect = true;
+            v.front.rectTransform.sizeDelta = new Vector2(cs * .94f, cs * .94f) * Skin.BallBoost;   // BallBoost: same yarn size as before the 29/10 normalising v.front.preserveAspect = true;
             UIKit.DropShadow(v.front, cs * .07f, cs * .045f, BallShadow);   // a clear soft shadow under each ball (user 25/10: stronger than the demo)
             var badge = Skin.Get("Ingame/ball-hidden-count");
             if (badge != null)

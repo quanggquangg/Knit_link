@@ -19,8 +19,9 @@ namespace KnitLink
             for (int t = 0; t < cells.Count; t++)
             {
                 var v = cells[t]; var st = S.stacks[t]; int hp = S.tg[t];
-                if (v.shownHp > 0 && hp == 0) { StartCoroutine(Poof(v)); Sfx.Play(Sfx.Unlock); }
-                if (hp > 0 && hp < v.shownHp) StartCoroutine(Wiggle(v.knot.rectTransform));
+                bool hit = tangleFx != null && tangleFx.Contains(t);   // this move pulled at this tangle (not a belt slide)
+                if (v.shownHp > 0 && hp == 0) { StartCoroutine(Poof(v)); Sfx.Play(Sfx.Unlock); if (hit) TangleGone(v); }
+                if (hp > 0 && hp < v.shownHp) { if (hit) TangleLoosen(v); else StartCoroutine(Wiggle(v.knot.rectTransform)); }
                 v.knot.gameObject.SetActive(hp > 0); if (hp > 0) v.knot.sprite = KnotArt(hp < 2);
                 v.shownHp = hp;
                 int ice = S.Frozen(t) ? S.ice[t] : 0; bool thawed = v.shownIce > 0 && ice == 0;
@@ -36,11 +37,14 @@ namespace KnitLink
                 v.selRing.gameObject.SetActive(sel == t); if (SK && sel == t && top != null) SkinSelRing(v, top.c);
                 if (top != null)
                 {
-                    UIKit.Yarn(v.front, top.c);
+                    bool unveil = v.shownMystery && v.shownTop == top.id && !top.mystery;   // "?" ball shows its color now
+                    MysteryLook(v, top.c, top.mystery); v.shownMystery = top.mystery;
+                    if (unveil) StartCoroutine(Unveil(v, top.c));
                     bool risen = (v.shownTop > 0 && v.shownTop != top.id && v.shownCount > st.Count) || (thawed && ice == 0);
                     if (risen) RunPos(v.front.rectTransform, Rise(v.front.rectTransform));
                     v.front.rectTransform.localScale = sel == t ? Vector3.one * 1.1f : Vector3.one;
                 }
+                if (top == null) v.shownMystery = false;
                 v.shownTop = top != null ? top.id : -1; v.shownCount = st.Count;
             }
             RenderMech();

@@ -4,7 +4,7 @@
   "difficulty": "superhard",
   "intro": "",
   "roll": "none",
-  "box": { "x": 1, "y": 3, "color": "C", "count": 4 },
+  "box": { "x": 2, "y": 5, "color": "R", "count": 4 },
   "baskets": [
     { "color": "R", "part": "roses" },
     { "color": "R", "part": "more roses" },
@@ -20,23 +20,24 @@
     { "color": "G", "part": "grass" },
     { "color": "P", "part": "butterfly" },
     { "color": "B", "part": "low sky" },
-    { "color": "B", "part": "sky" }
+    { "color": "B", "part": "lower sky" },
+    { "color": "B", "part": "upper sky" }
   ],
   "board": [
-    "C/G  B/G  P    C/P  B/P  C/R",
-    "G    B/P  C/G  Y/C  G    R",
-    "Y/R  G    C/G  X2   Y/P  B/R",
-    "Y/R  G    P    B/G  Y/G  Y/R",
-    "Y/G  Y    C    _    G    B/Y",
-    "R    G    Y    X2   Y/G  Y/C",
-    "B/R  G    B/G  P    _    P"
+    "G     G/C  B    C?   B/R  P/Y?",
+    "C/Y?  G/Y  P    Y/G  G/R  B",
+    "P/G   G    P/B  Y/C  G/Y  G/Y*4",
+    "_     B    C/R  Y    G    C",
+    "C/B   B/Y  R    G/Y  B/G  P/Y",
+    "P     Y/P  R    R    G/P  B",
+    "G/R   B/G  B    G    R    B/C"
   ],
   "picture": [
-    "eeeeeeeeeeeeeeeeeeeeeeee",
-    "eeeeeeeeeeeeeeeeee999eee",
-    "eeeeeee4e6006200499999ee",
-    "eeeeeee626666666699999ee",
-    "eeeeee00eeeeeeee629999ee",
+    "ffffffffffffffffffffffff",
+    "ffffffffffffffffff999fff",
+    "fffffff4f6006200499999ff",
+    "fffffff626666666699999ff",
+    "ffffee00eeeeeeee629999ee",
     "eeeee66eeeeeeeeee6699eee",
     "eeee666eeeeeeeeee666eeee",
     "eeee55eeeeeeeeeeee55eeee",

@@ -1,4 +1,4 @@
-// GameController – Level flow: auto-finish, out-of-moves check, progress save. (Win / retry popups: GameController.Popups.cs)
+// GameController – Level flow: auto-finish (switched off 28/10, BoardState.AutoFinishOn), out-of-moves check, progress save. (Win / retry popups: GameController.Popups.cs)
 // (GameController is split into GameController.*.cs files by feature; all parts share the same fields.)
 using System.Collections;
 using System.Collections.Generic;
@@ -35,15 +35,15 @@ namespace KnitLink
         {
             if (S == null || S.over) return;
             if (S.Won) { if (pending == 0 && busyBaskets.Count == 0) StartCoroutine(Delay(.3f, ShowWin)); return; }
-            MaybeAuto(); CheckStuck();
+            MaybeAuto(); CheckStuck(); CheckArmed();
         }
         // ---------- progress (build 1: no Home, no lives) ----------
         static bool Beaten(int num) => PlayerPrefs.GetInt("kl.beaten." + num, 0) == 1;
         void MarkBeaten(int li) { PlayerPrefs.SetInt("kl.beaten." + file.levels[li].num, 1); }
         void ResetTutorials()
         {
-            foreach (var k in BKeys) { PlayerPrefs.DeleteKey("kl.inv." + k); PlayerPrefs.DeleteKey("kl.claimed." + k); }
-            foreach (var k in new[] { "howto", "tip.shelf", "tip.gaps", "mech.hidden", "mech.tangles", "mech.deep", "mech.ice", "mech.box", "mech.belt", "roll.down", "roll.left", "roll.up", "roll.right" }) PlayerPrefs.DeleteKey("kl.seen." + k);
+            foreach (var k in BKeys) { PlayerPrefs.DeleteKey("kl.inv." + k); PlayerPrefs.DeleteKey("kl.claimed." + k); PlayerPrefs.DeleteKey("kl.coached." + k); }
+            foreach (var k in new[] { "howto", "tip.shelf", "tip.gaps", "mech.hidden", "mech.mystery", "mech.tangles", "mech.deep", "mech.ice", "mech.box", "mech.belt", "roll.down", "roll.left", "roll.up", "roll.right" }) PlayerPrefs.DeleteKey("kl.seen." + k);
             StartLevel(0);
         }
     }

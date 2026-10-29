@@ -14,12 +14,12 @@
     { "color": "B", "part": "high sky" }
   ],
   "board": [
-    "R  Y  B  Y  B",
-    "G  G  B  B  G",
-    "G  B  R  R  G",
-    "Y  B  B  B  B",
-    "G  G  Y  B  B",
-    "G  R  B  _  _"
+    "B  R  R  B  B",
+    "Y  G  G  G  G",
+    "Y  B  Y  B  R",
+    "B  B  B  B  _",
+    "B  G  G  Y  R",
+    "B  G  G  B  _"
   ],
   "picture": [
     "666666666666666666666666",

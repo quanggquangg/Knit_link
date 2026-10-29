@@ -116,7 +116,7 @@ namespace KnitLink
         }
 
         // ---------- open / close ----------
-        void CloseModal() { foreach (Transform c in modalRT) Destroy(c.gameObject); modalRT.gameObject.SetActive(false); }
+        void CloseModal() { foreach (Transform c in modalRT) Destroy(c.gameObject); modalRT.gameObject.SetActive(false); var cg = modalRT.GetComponent<CanvasGroup>(); if (cg != null) cg.alpha = 1; }
         /// <summary>Build a card. onClose != null adds the red X (and tapping the dim closes it too).</summary>
         Card OpenCard(System.Action<Card> build, System.Action onClose = null, float dim = .7f, string art = null)
         {

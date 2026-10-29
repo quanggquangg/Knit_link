@@ -15,22 +15,23 @@
     { "color": "G", "part": "leaves" },
     { "color": "O", "part": "soil" },
     { "color": "Y", "part": "wall" },
-    { "color": "Y", "part": "high wall" }
+    { "color": "Y", "part": "lower high wall" },
+    { "color": "Y", "part": "upper high wall" }
   ],
   "board": [
-    "B    B  _    B   B    B",
-    "P    P  G    G   G    C",
-    "P    C  Y/P  O   X2   C",
-    "Y    P  O    Y   B    B",
-    "B    O  Y    X2  Y/B  C",
-    "P    Y  G/Y  G   P/G  B",
-    "O*4  P  G/B  Y   B    G"
+    "B  G    _    B    Y    Y",
+    "G  P/Y  B    B    O    Y",
+    "Y  G    B/G  C    C    Y/B",
+    "P  Y    Y    P    G    O",
+    "B  Y/G  O    G    Y?   O",
+    "B  B    P    Y    G/P  B",
+    "P  P*3  C    Y/B  P/C  B"
   ],
   "picture": [
-    "aaaaaaaaaaaaaaaaaaaaaaaa",
-    "aaaaaaaaaaaaaaaaaaaaaaaa",
-    "aaaaaaaaaaaaaaaaaaaaaaaa",
-    "aaaaaaaaaaaaaaaaaaaaaaaa",
+    "bbbbbbbbbbbbbbbbbbbbbbbb",
+    "bbbbbbbbbbbbbbbbbbbbbbbb",
+    "bbbbbbbbbbbbbbbbbbbbbbbb",
+    "bbbbbbbbbbbbbbbbbbbbbbaa",
     "aaaaa2222aaaaaaaaaaaaaaa",
     "aaaa222222aaaaaaaaaaaaaa",
     "aaa22aaaa22aaaaaaaaaaaaa",

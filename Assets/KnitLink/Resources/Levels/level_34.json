@@ -4,7 +4,7 @@
   "difficulty": "easy",
   "intro": "",
   "roll": "none",
-  "box": { "x": 4, "y": 0, "color": "G", "count": 4 },
+  "box": { "x": 0, "y": 2, "color": "T", "count": 4 },
   "baskets": [
     { "color": "O", "part": "shell spiral" },
     { "color": "Y", "part": "shell" },
@@ -16,12 +16,12 @@
     { "color": "T", "part": "sky" }
   ],
   "board": [
-    "O  O  C  C  G   C",
-    "C  _  G  T  G   C",
-    "O  T  T  T  _   C",
-    "G  T  T  T  T   Y",
-    "Y  G  G  G  X2  Y",
-    "O  C  Y  G  C   _"
+    "_  T  C  C  C  G",
+    "T  _  Y  _  G  T",
+    "G  T  G  Y  C  C",
+    "T  C  C  G  G  Y",
+    "T  O  G  O  C  G?",
+    "O  O  T  T  Y  _"
   ],
   "picture": [
     "777777777777777777777777",

@@ -10,14 +10,14 @@
     { "color": "G", "part": "stem and leaves" },
     { "color": "B", "part": "low sky" },
     { "color": "B", "part": "high sky" },
-    { "color": "P", "part": "clouds" }
+    { "color": "C", "part": "clouds" }
   ],
   "board": [
-    "B  G  G  G  B",
-    "G  G  P  B  P",
-    "P  P  B  _  P",
-    "B  B  P  P  B",
-    "P  G  G  G  B"
+    "G  P  B  G  G",
+    "B  B  B  C  P",
+    "G  G  C  B  B",
+    "B  G  C  C  G",
+    "_  G  B  P  P"
   ],
   "picture": [
     "444444444444444444444444",

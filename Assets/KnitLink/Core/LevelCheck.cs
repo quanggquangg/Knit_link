@@ -62,6 +62,18 @@ namespace KnitLink
                 var twice = b.GroupBy(c => c).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
                 if (twice.Count > 0) r.errors.Add($"spot {t + 1} stacks {string.Join(", ", twice)} twice ({string.Join("/", b)}); a stack must not hold the same color twice");
             }
+            // "?" balls (28/10): not frozen, not under the needle box, never two side by side (each needs a normal neighbour to open it)
+            {
+                var g0 = Geometry.FromShape(L.shape);
+                for (int t = 0; t < L.board.stacks.Length; t++)
+                {
+                    if (!L.board.stacks[t].mystery) continue;
+                    if ((L.board.stacks[t].balls ?? new string[0]).Length == 0) r.errors.Add($"spot {t + 1} is marked ? but has no ball");
+                    if (L.board.ice != null && t < L.board.ice.Length && L.board.ice[t] > 0) r.errors.Add($"spot {t + 1}: a ? ball can't be frozen");
+                    if (L.box != null && System.Array.IndexOf(L.box.spots, t) >= 0) r.errors.Add($"spot {t + 1}: a ? ball can't be under the needle box");
+                    foreach (int n in g0.nb[t]) if (n > t && L.board.stacks[n].mystery) r.warnings.Add($"spots {t + 1} and {n + 1}: two ? balls side by side");
+                }
+            }
             // needle box: 4 single balls under the lid, no tangle/ice there, enough balls of its color outside, not on the belt row
             if (L.box != null)
             {

@@ -158,6 +158,7 @@ namespace KnitLink
                 c.Choice(price, () => { if (Coins < price) return; Coins -= price; RenderCoins(); go(); }, adOk ? (System.Action)(() => PlayAd(go)) : null, c.skin ? "Continue" : null);   // mockup: "Continue" above the price
                 c.Link("Give up and try again", () => { CloseModal(); StartLevel(levelIndex); });
             }, art: SkinPop.Revive);
+            AddHoldToSee();   // 28/10: hold the dark area to look at the board
         }
         void ShowLose(bool stuck)
         {
@@ -170,6 +171,7 @@ namespace KnitLink
                 c.Progress(KnittedPercent()); c.Lead("So close! Give this picture another go.", 46);
                 var again = c.BigButton("Try again", () => { CloseModal(); StartLevel(levelIndex); }); if (c.skin) SkinRecolor(again, "btn-blue");   // demo: blue
             }, art: SkinPop.Lose);
+            AddHoldToSee();
         }
         int KnittedPercent()
         {

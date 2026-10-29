@@ -15,12 +15,12 @@
     { "color": "Y", "part": "wall" }
   ],
   "board": [
-    "_  _    G/Y  Y    Y",
-    "_  _    G/R  Y    R",
-    "_  _    P    G/R  G/Y",
-    "R  R    G/P  Y    P/Y",
-    "_  G/Y  R    P    Y",
-    "Y  G/Y  R    Y    G/R"
+    "_  Y    P    R    Y",
+    "_  Y    R    G    R",
+    "_  _    G    G    G/Y",
+    "G  Y    R    P    Y",
+    "Y  Y/P  P/Y  Y/G  Y",
+    "G  Y/R  G/R  R    R"
   ],
   "picture": [
     "777777777777777777777777",

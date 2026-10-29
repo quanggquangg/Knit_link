@@ -13,10 +13,12 @@
 //     BagOpen the yarn bag pops up (revive)        BagLift a shelf ball lifts off towards the bag (it lands with Clink)
 //     Popper  win confetti (with Win)
 //     Hard / SuperHard  the warning ribbon slides in (GameController.HardBanner.cs) - new in Unity, not in the web demo
+//     Ting    a full basket celebrates before it flies off (28/10) – played with PlayPitched, higher on each combo step
+//     Rustle  a tangle loosens by one step (28/10, soft "sột")      Reveal  a "?" ball shows its color (28/10)
 //   To change a sound: edit its notes in Build() below. Overall loudness: Master.
 //   Real audio files win: a file Resources/Sounds/<name> (wav/mp3/ogg, e.g. Sounds/popper.wav) is played instead of the
 //   code-made sound of that name. Delete the file to go back to the code-made one.
-//   Files now (27/10): every sound above has a mixed WAV in Resources/Sounds, made by Tools/Audio/render_sounds.py (marimba /
+//   Files now (27/10; ting / rustle / reveal added 28/10): every sound above has a mixed WAV in Resources/Sounds, made by Tools/Audio/render_sounds.py (marimba /
 //   wool pluck / felt drum, small reverb, matched loudness) + music.wav (background loop). popper.wav = the user's
 //   "Confetti Party Popper - Free Sound Effect". The code-made notes below stay as the fallback.
 using System.Collections.Generic;
@@ -28,7 +30,8 @@ namespace KnitLink
     {
         public const string Tap = "tap", Link = "link", Clink = "clink", Shelf = "shelf", Err = "err", Pour = "pour",
             Done = "done", Boost = "boost", Unlock = "unlock", Win = "win", Fail = "fail",
-            BagOpen = "bagopen", BagLift = "baglift", Hard = "hard", SuperHard = "superhard", Popper = "popper";
+            BagOpen = "bagopen", BagLift = "baglift", Hard = "hard", SuperHard = "superhard", Popper = "popper",
+            Ting = "ting", Rustle = "rustle", Reveal = "reveal";
         const int Rate = 44100;
         const float Master = 5.5f;   // the demo's volumes (~0.08) are for a browser; this brings them to a normal level in Unity (peaks ~0.45)
 
@@ -51,6 +54,19 @@ namespace KnitLink
             EnsureListener();
             if (!clips.TryGetValue(name, out var clip)) clips[name] = clip = Resources.Load<AudioClip>("Sounds/" + name) ?? Build(name);
             if (clip != null) src.PlayOneShot(clip);
+        }
+
+        static AudioSource pitched;
+        /// <summary>Play a sound at another pitch (1 = normal, 2 = one octave up). Used for the basket combo "ting" (28/10).</summary>
+        public static void PlayPitched(string name, float pitch)
+        {
+            if (!Application.isPlaying) return;
+            Play("__init");   // makes sure the main source and the listener exist (unknown name: nothing plays)
+            if (pitched == null) { pitched = src.gameObject.AddComponent<AudioSource>(); pitched.playOnAwake = false; pitched.spatialBlend = 0; }
+            if (pitched.outputAudioMixerGroup == null) pitched.outputAudioMixerGroup = AudioMix.SfxGroup;
+            if (!clips.TryGetValue(name, out var clip)) clips[name] = clip = Resources.Load<AudioClip>("Sounds/" + name) ?? Build(name);
+            if (clip == null) return;
+            pitched.pitch = pitch; pitched.PlayOneShot(clip);
         }
 
         /// <summary>Unity plays no sound at all without an AudioListener in the scene (26/10: the Game scene had none, so the game
@@ -101,6 +117,11 @@ namespace KnitLink
                     Arp(s, new[] { 466f, 392, 311 }, .26f, .08f, .2f, .16f);
                     s.Tone(700, .3f, Wave.Sine, .045f, .2f, 1000); s.Tone(700, .3f, Wave.Sine, .045f, .55f, 1000);
                     break;
+                // 28/10: full-basket "ting" (a bell-like pair of sines) and the soft rustle of a tangle loosening
+                case Ting: s.Tone(880, .22f, Wave.Sine, .09f); s.Tone(1760, .16f, Wave.Sine, .035f, .015f); break;
+                case Rustle: s.Noise(.15f, .07f, 1600); s.Noise(.09f, .04f, 3200, .05f); break;
+                case Reveal: s.Tone(500, .09f, Wave.Sine, .06f, 0, 900); s.Tone(1319, .25f, Wave.Triangle, .05f, .05f); break;
+                case "__init": return null;
                 default: KLog.Warn("Sound", $"Unknown sound '{name}'"); return null;
             }
             return s.ToClip(name);

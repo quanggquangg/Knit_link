@@ -4,7 +4,6 @@
   "difficulty": "easy",
   "intro": "",
   "roll": "none",
-  "box": { "x": 1, "y": 3, "color": "Y", "count": 4 },
   "baskets": [
     { "color": "R", "part": "strawberry" },
     { "color": "G", "part": "leaf" },
@@ -17,22 +16,23 @@
     { "color": "C", "part": "plate" },
     { "color": "T", "part": "table" },
     { "color": "T", "part": "wall" },
-    { "color": "T", "part": "high wall" }
+    { "color": "T", "part": "lower high wall" },
+    { "color": "T", "part": "upper high wall" }
   ],
   "board": [
-    "R    C    C  P  T/R  C",
-    "T/G  Y/T  C  P  Y    C",
-    "C    T    T  T  Y    G",
-    "P    C    C  C  Y    Y/P",
-    "R    C    P  T  T/Y  P",
-    "G    T    T  Y  T    T/G",
-    "_    C    C  P  P    Y/R"
+    "C/Y  P    C  P/C  T    Y/T",
+    "R    T    T  T    T/C  P",
+    "G?   C    Y  P    P    T",
+    "T/P  T/Y  Y  P    P    Y/R",
+    "C/R  C    C  Y/G  C    T",
+    "G?   T    C  _    R    T",
+    "T    T/C  Y  T    T/G  C"
   ],
   "picture": [
-    "bbbbbbbbbbbbbbbbbbbbbbbb",
-    "bbbbbbbbbbbb1bbbbbbbbbbb",
-    "bbbbbbbbbbb111bbbbbbbbbb",
-    "bbbbbbbbbb0000bbbbbbbbbb",
+    "cccccccccccccccccccccccc",
+    "cccccccccccc1ccccccccccc",
+    "ccccccccccc111cccccccccc",
+    "cccccccbbb0000bbbbbbbbbb",
     "bbbbbbbbbb0000bbbbbbbbbb",
     "bbbbbbbbbb0000bbbbbbbbbb",
     "bbbbbbbbbbb00bbbbbbbbbbb",

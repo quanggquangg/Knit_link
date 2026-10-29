@@ -1,5 +1,5 @@
 // GameController – "New item" popups with a looping demo (design canvas ItemIntro, 20/10):
-//   hidden yarn (Lv6) · deeper stacks (Lv8, was 16) · tangles (Lv12) · frozen yarn (Lv21) · yarn rolls down/left/up/right (Lv24/27/36/48)
+//   hidden yarn (Lv6) · "?" mystery yarn (Lv7, 28/10) · deeper stacks (popup no longer used since 28/10) · tangles (Lv12) · frozen yarn (Lv21) · yarn rolls down/left/up/right (Lv24/27/36/48)
 //   · needle box (Lv32) · conveyor belt (Lv43)
 // Each demo is built from plain images and animated by LoopAnim + KF keyframes (times are fractions of the loop).
 // To add an item: add a row to IntroText and a case in BuildIntroDemo.
@@ -18,6 +18,7 @@ namespace KnitLink
         static readonly Dictionary<string, (string title, string text, string hint)> IntroText = new Dictionary<string, (string, string, string)>
         {
             { "hidden",    ("Hidden yarn",      "The number shows how many balls hide below.", "This stack hides more yarn below.") },
+            { "mystery",   ("Mystery yarn",     "Clear a ball next to it to see its color.",  "Clear a ball next to this one to see its color.") },
             { "tangles",   ("Tangles",          "Clear 2 balls next to it to untangle.",      "This tangle blocks yarn your basket needs. Clear 2 balls next to it.") },
             { "deep",      ("Deeper stacks",    "Now up to 2 balls can hide below.",          "2 more balls wait under this one.") },
             { "ice",       ("Frozen yarn",      "Each match melts the ice by 1.",             "Join pairs anywhere to melt this ice.") },
@@ -57,6 +58,7 @@ namespace KnitLink
             int t = -1;
             if (kind == "hidden") t = System.Array.FindIndex(S.stacks, st => st.Count > 1);
             else if (kind == "deep") t = System.Array.FindIndex(S.stacks, st => st.Count > 2);
+            else if (kind == "mystery") t = System.Array.FindIndex(S.stacks, st => st.Count > 0 && st[st.Count - 1].mystery);
             else if (kind == "tangles") t = System.Array.FindIndex(S.tg, h => h > 0);
             else if (kind == "ice") t = System.Array.FindIndex(S.ice, n => n > 0);
             else if (kind == "box") return boxLid;
@@ -95,6 +97,22 @@ namespace KnitLink
                         Alpha(top, KF.At(p, .28f, 1, .42f, 0, .92f, 0, 1, 1)); top.rectTransform.anchoredPosition = new Vector2(0, KF.At(p, .28f, 0, .42f, 166, .92f, 166, 1, 0)); top.rectTransform.localScale = Vector3.one * KF.At(p, .28f, 1, .42f, .6f, .92f, .6f, 1, 1);
                         Alpha(rise, KF.At(p, .40f, 0, .56f, 1, .92f, 1, 1, 0)); rise.rectTransform.localScale = Vector3.one * KF.At(p, .40f, .5f, .56f, 1, .92f, 1, 1, .5f);
                         Alpha(badge, KF.At(p, .34f, 1, .40f, 0, .92f, 0, 1, 1));
+                    });
+                    break;
+                }
+                case "mystery":
+                {   // 3.2 s: the green ball next to the gray "?" leaves, the "?" flips to its real color (pink)
+                    var n1 = DemoBall(box, "green", 172, new Vector2(-230, 0)); DemoBall(box, "blue", 172, new Vector2(230, 0));
+                    var real = DemoBall(box, "pink", 210, Vector2.zero);
+                    var gray = DemoBall(box, "cream", 210, Vector2.zero); gray.color = FB.MysteryGray;
+                    var mqArt = Skin.On ? Skin.Mystery() : null;   // the artist's "?" ball when it is in the project
+                    var q = UIKit.Display(UIKit.Txt("Q", gray.transform, "?", 130, Color.white)); UIKit.Stretch(q.rectTransform); var qo = q.gameObject.AddComponent<Outline>(); qo.effectColor = UIKit.Hex("#6d625a"); qo.effectDistance = new Vector2(4, -4);
+                    if (mqArt != null) { gray.sprite = mqArt; gray.color = Color.white; q.gameObject.SetActive(false); }
+                    LoopAnim.Add(box.gameObject, 3.2f, p =>
+                    {
+                        Alpha(n1, KF.At(p, .24f, 1, .36f, 0, .92f, 0, 1, 1)); n1.rectTransform.anchoredPosition = new Vector2(-230, KF.At(p, .24f, 0, .36f, 150, .92f, 150, 1, 0)); n1.rectTransform.localScale = Vector3.one * KF.At(p, .24f, 1, .36f, .5f, .92f, .5f, 1, 1);
+                        float g = KF.At(p, .36f, 1, .46f, 0, .94f, 0, 1, 1); gray.rectTransform.localScale = new Vector3(g, 1, 1); Alpha(gray, g > .02f ? 1 : 0);
+                        float r = KF.At(p, .44f, 0, .54f, 1, .92f, 1, .96f, 0); real.rectTransform.localScale = new Vector3(r, 1, 1) * KF.At(p, .44f, 1, .52f, 1.12f, .6f, 1, 1, 1); Alpha(real, r > .02f ? 1 : 0);
                     });
                     break;
                 }

@@ -1,8 +1,8 @@
 {
   "name": "Red Apple",
-  "tag": "Picnic",
-  "difficulty": "easy",
-  "intro": "",
+  "tag": "Mystery yarn",
+  "difficulty": "medium",
+  "intro": "mystery",
   "roll": "none",
   "baskets": [
     { "color": "G", "part": "leaf" },
@@ -13,11 +13,11 @@
     { "color": "Y", "part": "wall" }
   ],
   "board": [
-    "_  R    R  B  _",
-    "Y  G    G  Y  B",
-    "G  _    G  R  Y/G",
-    "R  Y/B  Y  G  Y",
-    "B  Y    Y  G  G"
+    "Y  _   Y  G?   Y/G",
+    "Y  _   Y  G    G",
+    "R  B?  B  B/R  Y/G?",
+    "_  G   _  R    G",
+    "R  G   _  Y/B  Y"
   ],
   "picture": [
     "555555555555555555555555",

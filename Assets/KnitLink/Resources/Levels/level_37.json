@@ -16,12 +16,12 @@
     { "color": "B", "part": "sky" }
   ],
   "board": [
-    "O  V  O    V   R    O",
-    "V  G  B/G  G   R    O",
-    "V  G  B    X2  B    Y",
-    "Y  G  B    B   B/Y  R",
-    "Y  B  G    G   B    R",
-    "O  O  G    O   O    _"
+    "O  Y   O  O  G/B  O",
+    "B  _   G  G  B/O  B",
+    "Y  X2  G  G  G    Y",
+    "B  G   Y  R  R    O",
+    "R  O   V  V  O    G",
+    "V  B   B  R  B    V"
   ],
   "picture": [
     "888888888888888888888888",

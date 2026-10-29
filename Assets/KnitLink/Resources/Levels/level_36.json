@@ -1,7 +1,7 @@
 {
   "name": "Butterfly",
   "tag": "Rolls up",
-  "difficulty": "hard",
+  "difficulty": "easy",
   "intro": "roll",
   "roll": "up",
   "baskets": [
@@ -15,12 +15,12 @@
     { "color": "B", "part": "sky" }
   ],
   "board": [
-    "V  V    V  Y/V  P",
-    "V  Y/B  Y  Y    V",
-    "P  Y    B  B    P",
-    "P  Y    B  B    P",
-    "Y  B    B  B    P",
-    "P  _    P  V    Y/V"
+    "P  P/V  B/P  V    V",
+    "V  Y    B    V    B",
+    "Y  Y    Y    Y    B",
+    "Y  V    P    B    Y",
+    "Y  B    P    B/P  P",
+    "_  B    V    V    P"
   ],
   "picture": [
     "777777777777777777777777",

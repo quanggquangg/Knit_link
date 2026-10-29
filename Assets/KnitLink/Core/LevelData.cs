@@ -27,7 +27,8 @@ namespace KnitLink
         public BeltDef belt;                     // conveyor belt (null = none), added 23/10
     }
     [Serializable] public class BoardDef { public StackDef[] stacks; public int[] tangles; public int[] ice; }
-    [Serializable] public class StackDef { public string[] balls; }
+    /// <summary>mystery (28/10): the top ball is a "?" ball (token ends with ?, e.g. R? or B/R?).</summary>
+    [Serializable] public class StackDef { public string[] balls; public bool mystery; }
     /// <summary>Needle box: a lid over 4 spots (2x2). It opens after <see cref="count"/> balls of <see cref="color"/> are matched anywhere.</summary>
     [Serializable] public class BoxDef { public int[] spots; public string color; public int count; }
     /// <summary>Conveyor belt: one full board row that slides 1 spot after every valid match (dir +1 = right, -1 = left).</summary>

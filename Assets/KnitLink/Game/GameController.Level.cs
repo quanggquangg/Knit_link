@@ -21,6 +21,7 @@ namespace KnitLink
             prog = new float[L.baskets.Length]; busyBaskets.Clear(); leavingBaskets.Clear();
             foreach (var v in basketViews.Values) Destroy(v.rt.gameObject); basketViews.Clear(); basketOrder.Clear();
             // a booster that unlocked at an earlier level the player skipped is simply given (+2)
+            combo = 0; armed = null; undoInfo.Clear();
             foreach (var k in BKeys) if (L.num > Unlock[k] && !Claimed(k)) { PlayerPrefs.SetInt("kl.claimed." + k, 1); SetInv(k, Inv(k) + Cfg.boostersOnUnlock); }
             // "Level N" only – no subtitle under it (decided 20/10); hard levels get a pink title
             title.text = $"Level {L.num}";
@@ -53,7 +54,9 @@ namespace KnitLink
                 v.rt = UIKit.Rect("Spot" + t, board); v.rt.anchorMin = v.rt.anchorMax = new Vector2(0, 1); v.rt.pivot = new Vector2(.5f, .5f);
                 v.rt.sizeDelta = new Vector2(cs, cs * CELL_H); v.rt.anchoredPosition = CellPos(t);
                 v.hit = v.rt.gameObject.AddComponent<Image>(); v.hit.color = new Color(1, 1, 1, 0); v.hit.raycastTarget = true;
-                v.rt.gameObject.AddComponent<Button>().onClick.AddListener(() => OnTap(tt));
+                // tap = finger DOWN (29/10): a Button fires on finger up and Unity drops the click when the finger moves a few
+                // pixels while pressing, so fast taps right after a match were often lost
+                v.rt.gameObject.AddComponent<SpotTap>().onTap = () => OnTap(tt);
                 v.shadow = Sub(v.rt, UIKit.Circle, new Color(.63f, .5f, .35f, .12f), .8f, 0, 0);
                 v.selRing = Sub(v.rt, UIKit.Ring, UIKit.Hex("#7fa3e8"), 1.02f, 0, 0);
                 v.front = Sub(v.rt, UIKit.Ball, Color.white, .84f, 0, 0);
@@ -87,5 +90,12 @@ namespace KnitLink
             float py = y < 0 ? -m : y >= g.H ? bh + m : y * (cs * CELL_H + cs * GAP) + cs * CELL_H / 2;
             return new Vector2(px, -py);
         }
+    }
+
+    /// <summary>A board spot: reports a tap the moment the finger goes down (no drag threshold, no waiting for the release).</summary>
+    public class SpotTap : MonoBehaviour, IPointerDownHandler
+    {
+        public System.Action onTap;
+        public void OnPointerDown(PointerEventData e) { if (e.button == PointerEventData.InputButton.Left) onTap?.Invoke(); }
     }
 }

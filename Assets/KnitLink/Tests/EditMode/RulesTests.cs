@@ -55,6 +55,41 @@ namespace KnitLink.Tests
             Assert.IsTrue(ev.Exists(e => e.k == EvKind.Belt));
         }
 
+        /// <summary>"?" ball (28/10): can't be picked; a ball leaving a spot next to it shows its color, then it plays normally.</summary>
+        [Test] public void MysteryBallOpensWhenANeighbourLeaves()
+        {
+            var s = Board("RB", "R R B?", "B B _ B");
+            Assert.IsTrue(s.Top(2).mystery);
+            Assert.IsFalse(s.Pairs().Exists(m => m.a == 2 || m.b == 2), "a gray ball can't be matched");
+            var ev = new List<GameEvent>(); s.Apply(0, 1, ev);   // spot 1 is next to spot 2
+            Assert.IsFalse(s.Top(2).mystery);
+            Assert.IsTrue(ev.Exists(e => e.k == EvKind.Mystery && e.t == 2));
+        }
+
+        /// <summary>A "?" ball far from the move stays gray.</summary>
+        [Test] public void MysteryBallStaysGrayWithoutANeighbourLeaving()
+        {
+            var s = Board("RB", "R R _ B?", "B B B _");
+            var ev = new List<GameEvent>(); s.Apply(0, 1, ev);   // spots 0 and 1: not next to spot 3
+            Assert.IsTrue(s.Top(3).mystery);
+        }
+
+        /// <summary>The "?" mark survives writing the level file back.</summary>
+        [Test] public void MysteryTokenRoundTrips()
+        {
+            var pic = string.Join(",", System.Linq.Enumerable.Repeat("\"" + new string('0', LevelJsonIO.PictureSize) + "\"", LevelJsonIO.PictureSize));
+            var json = $"{{\"name\":\"t\",\"difficulty\":\"easy\",\"roll\":\"none\",\"baskets\":[{{\"color\":\"R\",\"part\":\"p\"}},{{\"color\":\"B\",\"part\":\"p\"}}],\"board\":[\"R R B/R?\",\"B B B _\"],\"picture\":[{pic}]}}";
+            var L = LevelJsonIO.Parse(json, "t", new List<string>());
+            Assert.AreEqual("B/R?", LevelJsonIO.SpotToken(L, 2));
+        }
+
+        /// <summary>Auto-finish is off since 28/10: the level never finishes by itself.</summary>
+        [Test] public void NoAutoFinish()
+        {
+            var s = Board("R", "R R R R");
+            Assert.IsFalse(s.CanAuto);
+        }
+
         [Test] public void MatchingFillsTheOpenBasket()
         {
             var s = Board("R", "R R R R");

@@ -46,6 +46,7 @@ Ký hiệu ô trên `board` (cách nhau bằng dấu cách, mỗi chuỗi là 1 
 | `R O Y G T B V P C` | 1 cuộn len: Red, Orange, Yellow, Green, Teal, Blue, Violet (tím), Pink, Cream |
 | `R/B` | Chồng: R nằm dưới (ẩn), B ở trên. Tối đa 3 cuộn |
 | `B*4` | Cuộn bị đóng băng, tan sau 4 lần nối hợp lệ |
+| `R?` `B/R?` | Cuộn "?" (28/10): cuộn trên cùng màu xám, không chọn được, chặn đường nối; hiện màu khi 1 cuộn ở ô kề bên (4 hướng) rời đi. Không đặt trên ô băng / dưới hộp kim chỉ, không đặt 2 cuộn "?" cạnh nhau |
 | `X2` | Rối len, độ bền 2 (X1 = độ bền 1) |
 | `_` | Ô trống |
 | `.` | Khe (không có ô) |
@@ -53,7 +54,7 @@ Ký hiệu ô trên `board` (cách nhau bằng dấu cách, mỗi chuỗi là 1 
 - `baskets`: thứ tự giỏ đan. Giỏ đầu tiên là số `0`, tiếp theo `1`, `2`… (sau `9` là `a`, `b`…).
 - `picture`: tranh 24×24 (từ 20/10), mỗi ký tự là số của giỏ đan mũi đó. Màu chủ thể không trùng màu nền; xem tranh ở cỡ nhỏ vẫn phải đọc ra hình.
 - `difficulty`: `easy` / `medium` / `hard` / `superhard` (đổi màu tiêu đề và số coin thưởng).
-- `intro` (hướng dẫn khi vào level): `howto`, `shelf`, `gaps`, `hidden`, `tangles`, `deep`, `ice`, `roll`, `box`, `belt` hoặc để trống. Hướng dẫn đi theo level khi đổi thứ tự.
+- `intro` (hướng dẫn khi vào level): `howto`, `shelf`, `gaps`, `hidden`, `mystery`, `tangles`, `deep`, `ice`, `roll`, `box`, `belt` hoặc để trống. Hướng dẫn đi theo level khi đổi thứ tự.
 - `roll`: `none` / `down` / `up` / `left` / `right`.
 - `box` (tùy chọn, 23/10): **hộp kim chỉ** phủ 2×2 ô, góc trên-trái ở cột `x`, hàng `y` của `board` (đếm từ 0). 4 ô dưới hộp mỗi ô đúng 1 cuộn. Mỗi cuộn màu `color` được nối ở bất kỳ đâu làm số `count` giảm 1; về 0 nắp mở. Khi đóng: không chạm được, chặn đường nối, không lăn.
 - `belt` (tùy chọn, 23/10): **băng chuyền** trên hàng `row` (đếm từ 0, hàng phải đủ ô, không có khe), `dir` = `right`/`left`. Sau mỗi lần nối hợp lệ cả hàng trượt 1 ô, ô cuối vòng về đầu. Không đặt hộp kim chỉ trên hàng băng chuyền.
@@ -71,7 +72,7 @@ Mở Console, gõ tag vào ô tìm kiếm để lọc: `[Level]` `[Move]` `[Boos
 |---|---|
 | Level không vào được / báo lỗi đỏ khi Play | Console `[Level]` → file và dòng/cột bị sai. Chạy **Validate All Levels** |
 | Luật sai: nối được khi không nên, băng giảm sai, lăn sai, kệ tràn sai | `Core/YarnCore.cs` (`Connected`, `FindPath`, `AfterLeave`, `Roll`, `Give`, `Settle`) + chạy test `RulesTests` |
-| Bấm vào ô không phản hồi / chọn sai | `Game/GameController.Input.cs` (`OnTap`) |
+| Bấm vào ô không phản hồi / chọn sai | `Game/GameController.Input.cs` (`OnTap`). Chạm được nhận lúc ngón tay chạm xuống (29/10) qua `SpotTap` ở cuối `Game/GameController.Level.cs` – không dùng `Button` vì Button bỏ chạm khi ngón tay trượt nhẹ |
 | Ô, cuộn, số chồng, băng, rối hiển thị sai | `Game/GameController.Render.cs` (`RenderBoard`) |
 | Bóng bay, đan tranh, lăn bị giật / lệch | `Game/GameController.Animation.cs` |
 | Giỏ hiển thị sai / giỏ xem trước | `Game/GameController.Render.cs` (`RenderBaskets`) |
@@ -86,8 +87,9 @@ Mở Console, gõ tag vào ô tìm kiếm để lọc: `[Level]` `[Move]` `[Boos
 | Tranh đan (mũi đan, viền, bóng mờ) | `Game/PictureRenderer.cs` |
 | Icon vẽ bằng code (bánh răng, ổ khóa, túi len, coin…) | `Game/UIKit.Icons.cs` – thay sprite ở đây khi có art |
 | Hiệu ứng "thở", vòng lặp hoạt ảnh, keyframe | `Game/UIAnim.cs` (`Breath`, `LoopAnim`, `KF`) |
-| Thắng / lưu tiến trình / tự đan nốt / hết nước | `Game/GameController.Flow.cs` |
-| Hướng dẫn, bàn tay, nhận booster mới | `Game/GameController.Tutorial.cs` |
+| Thắng / lưu tiến trình / hết nước (tự đan nốt đã TẮT từ 28/10: `BoardState.AutoFinishOn` trong `Core/YarnCore.cs`) | `Game/GameController.Flow.cs` |
+| Góp ý 28/10: cuộn "?" (art tạm vẽ bằng code: `MysteryLook`), giỏ đầy Nice!/Great!/Perfect! + combo, Undo bay ngược, hiệu ứng len rối + "Untangled!", "Hold board to see", hướng dẫn Undo/Hint khi kệ gần đầy. Số liệu chỉnh trong `FB` | `Game/GameController.Feedback.cs` |
+| Hướng dẫn, bàn tay, nhận booster mới. Popup booster hiện ngay đầu level mở khóa, bấm Claim là +2 (`ClaimBooster`); riêng Undo/Hint có thêm lượt dùng thử miễn phí, đợi kệ còn ≤2 ô trống (`armed`, `CheckArmed` trong Feedback.cs) | `Game/GameController.Tutorial.cs` |
 | Màn hình khác tỉ lệ (16:9, 20:9, iPad…), tai thỏ: cột game rộng 1080 luôn nằm giữa, cao tối thiểu 2100 (`Fit`); nền, thanh cam, popup, pháo giấy phủ cả màn hình. Thử: chọn các cỡ "KL …" trong Game view | `Game/GameController.ScreenFit.cs` |
 | Vị trí / kích thước các khối trên màn hình (số liệu trong `Lay`; với art mới xem thêm `SkinLay`, mục 7) | `Game/GameController.UI.cs` (`BuildUI`) |
 | Giá, coin thưởng, số revive, level mở khóa | `Resources/GameConfig.asset` (không cần sửa code) |
@@ -101,7 +103,7 @@ Mở Console, gõ tag vào ô tìm kiếm để lọc: `[Level]` `[Move]` `[Boos
 
 ## 6. Lưu tiến trình (PlayerPrefs)
 
-`kl.level` level đang chơi (số thứ tự) · `kl.coins` · `kl.inv.undo/hint/shelf` · `kl.claimed.*` booster đã mở · `kl.seen.*` hướng dẫn đã xem · `kl.beaten.N` · `kl.lang` ngôn ngữ (`en` / `vi`).
+`kl.level` level đang chơi (số thứ tự) · `kl.coins` · `kl.inv.undo/hint/shelf` · `kl.claimed.*` booster đã nhận +2 · `kl.coached.*` đã hướng dẫn dùng thử Undo/Hint · `kl.seen.*` hướng dẫn đã xem · `kl.beaten.N` · `kl.lang` ngôn ngữ (`en` / `vi`).
 
 ## 7. Art của họa sĩ (Skin) – thêm 25/10
 

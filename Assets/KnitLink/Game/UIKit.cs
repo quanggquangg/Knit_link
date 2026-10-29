@@ -23,20 +23,20 @@ namespace KnitLink
         /// the colors of the artist's balls, so the picture, the strand, rings and confetti match the balls on the board (26/10).</summary>
         public static Dictionary<string, (Color c, Color d, Color l, string name)> Colors => Skin.On ? SkinColors : ClassicColors;
 
-        /// <summary>Colors measured from the artist's ball pictures (Resources/Skin/.../Ingame/Asset/&lt;color&gt;-ball.png, the middle
+        /// <summary>Colors measured from the artist's ball pictures (28/10: the new set Resources/Skin/.../Item fix/&lt;color&gt;-ball.png, the middle
         /// tone of the ball). If the artist changes a ball's color, update its line here (d = c × 0.72, l = c + 42% white).
         /// Checked by Tests/EditMode/SkinColorsTests.cs: the test fails when a line no longer matches its ball picture.</summary>
         public static readonly Dictionary<string, (Color c, Color d, Color l, string name)> SkinColors = new Dictionary<string, (Color c, Color d, Color l, string name)>
         {
-            { "red",    (Hex("#e02d1d"), Hex("#a12014"), Hex("#ed857b"), "Red") },
-            { "orange", (Hex("#f27537"), Hex("#ae5427"), Hex("#f7ae8b"), "Orange") },
-            { "yellow", (Hex("#fac304"), Hex("#b48c02"), Hex("#fcdc6d"), "Yellow") },
-            { "green",  (Hex("#23b34f"), Hex("#198038"), Hex("#7fd298"), "Green") },
-            { "teal",   (Hex("#3eadf0"), Hex("#2c7cac"), Hex("#8fcff6"), "Teal") },     // art file: cyan-ball
-            { "blue",   (Hex("#3f5de5"), Hex("#2d42a4"), Hex("#8fa1ef"), "Blue") },
-            { "purple", (Hex("#935add"), Hex("#69409f"), Hex("#c09feb"), "Purple") },
-            { "pink",   (Hex("#ed65a7"), Hex("#aa4878"), Hex("#f4a5cb"), "Pink") },
-            { "cream",  (Hex("#f0edea"), Hex("#acaaa8"), Hex("#f6f4f2"), "Cream") },     // art file: white-ball
+            { "red",    (Hex("#fa402a"), Hex("#b42e1e"), Hex("#fc9083"), "Red") },
+            { "orange", (Hex("#ec854f"), Hex("#aa6039"), Hex("#f4b899"), "Orange") },
+            { "yellow", (Hex("#f7d314"), Hex("#b2980e"), Hex("#fae577"), "Yellow") },
+            { "green",  (Hex("#38a94a"), Hex("#287a35"), Hex("#8ccd96"), "Green") },
+            { "teal",   (Hex("#3cb4f1"), Hex("#2b82ae"), Hex("#8ed4f7"), "Teal") },     // art file: cyan-ball
+            { "blue",   (Hex("#3757d2"), Hex("#283f97"), Hex("#8b9ee5"), "Blue") },
+            { "purple", (Hex("#9f4df4"), Hex("#7237b0"), Hex("#c798f9"), "Purple") },
+            { "pink",   (Hex("#f55fb4"), Hex("#b04482"), Hex("#f9a2d4"), "Pink") },
+            { "cream",  (Hex("#dcd9d6"), Hex("#9e9c9a"), Hex("#ebe9e7"), "Cream") },     // art file: white-ball
         };
 
         /// <summary>The old code-drawn look (no artist art, or the skin turned off).</summary>

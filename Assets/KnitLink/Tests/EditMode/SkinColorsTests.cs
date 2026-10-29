@@ -24,7 +24,7 @@ namespace KnitLink.Tests
         [TestCaseSource(nameof(GameColors))]
         public void PictureColorMatchesBallArt(string color)
         {
-            string file = "Ingame/Asset/" + Skin.ArtColor(color) + "-ball";
+            string file = Skin.BallFile(color);   // the ball picture the game really uses (Item fix set first, 28/10)
             var tex = Skin.Tex(file);
             if (tex == null) Assert.Ignore($"No art '{file}' in Resources/Skin - the game uses the classic colors");
             Color32[] px;

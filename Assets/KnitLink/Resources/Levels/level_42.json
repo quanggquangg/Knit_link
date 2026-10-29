@@ -4,7 +4,7 @@
   "difficulty": "easy",
   "intro": "",
   "roll": "none",
-  "box": { "x": 4, "y": 4, "color": "P", "count": 4 },
+  "box": { "x": 0, "y": 0, "color": "P", "count": 4 },
   "baskets": [
     { "color": "P", "part": "icing" },
     { "color": "P", "part": "icing drips" },
@@ -18,13 +18,13 @@
     { "color": "V", "part": "high wall" }
   ],
   "board": [
-    "P  P   B  O  B  B",
-    "O  X2  O  C  C  B",
-    "P  C   V  V  V  O",
-    "Y  C   V  V  _  P",
-    "P  C   C  V  O  C",
-    "Y  V   O  V  P  P",
-    "C  Y   Y  O  O  P"
+    "C  O  V  C  V  V",
+    "O  P  P  V  V  O",
+    "B  _  O  P  C  V",
+    "C  Y  Y  P  V  C",
+    "O  _  Y  P  P  O",
+    "P  O  B  C  Y  O",
+    "C  C  B  P  V  B"
   ],
   "picture": [
     "999999999999999999999999",
