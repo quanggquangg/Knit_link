@@ -150,10 +150,11 @@ namespace KnitLink
             System.Action go = () => DoRevive(stuck);
             OpenCard(c =>
             {
-                c.Pill(stuck ? "Out of moves" : "Out of space", PillStyle.Red); c.Title(stuck ? "No moves left" : "The shelf is full");
-                // shelf full: the 4 oldest shelf balls (the ones that will move) keep flying into the bag
-                c.BigIcon(ic => { if (stuck) OpenWayIcon(ic); else BagLoopIcon(ic, S.shelf.Take(Cfg.reviveBagSize).ToList()); });
-                c.Lead(stuck ? "Take 2 pairs for your basket." : first ? $"Move {Cfg.reviveBagSize} shelf balls into a yarn bag." : $"Move {Cfg.reviveBagSize} more shelf balls into the yarn bag.");
+                c.Pill(stuck ? "Out of moves" : "Out of space", PillStyle.Red); c.Title(stuck ? "No moves left" : c.skin ? "Out of Slot" : "The shelf is full");
+                // shelf full: the 4 oldest shelf balls (the ones that will move) keep flying into the bag.
+                // New art (29/10): a small shelf + the sack in the panel's well (ReviveBagLoop, GameController.ReviveBag.cs)
+                c.BigIcon(ic => { if (stuck) OpenWayIcon(ic); else if (!(c.skin && ReviveBagLoop(ic))) BagLoopIcon(ic, S.shelf.Take(Cfg.reviveBagSize).ToList()); });
+                c.Lead(stuck ? "Take 2 pairs for your basket." : first ? $"Move {Cfg.reviveBagSize} shelf balls\ninto Yarn Bag" : $"Move {Cfg.reviveBagSize} more shelf balls\ninto Yarn Bag");
                 c.Progress(KnittedPercent());
                 c.Choice(price, () => { if (Coins < price) return; Coins -= price; RenderCoins(); go(); }, adOk ? (System.Action)(() => PlayAd(go)) : null, c.skin ? "Continue" : null);   // mockup: "Continue" above the price
                 c.Link("Give up and try again", () => { CloseModal(); StartLevel(levelIndex); });
@@ -198,7 +199,7 @@ namespace KnitLink
             var ballsRT = UIKit.Rect("Balls", holder); UIKit.Stretch(ballsRT);
             var front = UIKit.Img("Front", holder, UIKit.BagFront, Color.white); UIKit.Stretch(front.rectTransform);
             Vector2 mouth = new Vector2(0, BW * (.5f - .3f));
-            if (SK) SkinBagLoop(holder, back, front, ref mouth, BW);
+            if (SK && SkinBagParts(holder, back, front, BW, out var m)) mouth = m;
             Vector2[] starts = { new Vector2(-178, 0), new Vector2(-139, 72), new Vector2(139, 72), new Vector2(178, 0) };
             for (int i = 0; i < cols.Count && i < 4; i++)
             {

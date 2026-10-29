@@ -75,10 +75,12 @@ Mở Console, gõ tag vào ô tìm kiếm để lọc: `[Level]` `[Move]` `[Boos
 | Bấm vào ô không phản hồi / chọn sai | `Game/GameController.Input.cs` (`OnTap`). Chạm được nhận lúc ngón tay chạm xuống (29/10) qua `SpotTap` ở cuối `Game/GameController.Level.cs` – không dùng `Button` vì Button bỏ chạm khi ngón tay trượt nhẹ |
 | Ô, cuộn, số chồng, băng, rối hiển thị sai | `Game/GameController.Render.cs` (`RenderBoard`) |
 | Bóng bay, đan tranh, lăn bị giật / lệch | `Game/GameController.Animation.cs` |
+| Cuộn len trên kệ trượt sang trái lấp chỗ trống sau khi cuộn len trên kệ bay lên giỏ (29/10; thời gian `FB.SlideAfter`, `FB.SlideTime`) | `Game/GameController.Feedback.cs` (`SlideShelf`) |
 | Giỏ hiển thị sai / giỏ xem trước | `Game/GameController.Render.cs` (`RenderBaskets`) |
 | Undo / Hint / Extra Shelf sai | `Game/GameController.Boosters.cs` |
 | Logic revive (lùi nước, chuyển 4 cuộn vào túi, mở đường) | `Game/GameController.Revive.cs` |
 | Ô túi len cạnh SHELF, hoạt ảnh 4 cuộn bay vào túi (thời gian trong `BagT`) | `Game/GameController.Bag.cs` |
+| Popup "Out of Slot" (art mới 29/10, thư mục `yarn-bag/`): kệ nhỏ + túi vải trong khung popup, 4 cuộn nhảy vào túi rồi lặp lại (số liệu trong `RB`). Túi = `bag1` (sau) + `bag2` (nửa trước, đè lên cuộn len); thiếu file thì tự quay về túi tím cũ trong `Ingame/` (`Skin.BagArt`) | `Game/GameController.ReviveBag.cs` |
 | Nội dung từng popup: Settings, booster, Retry, revive, lose, win ×3, quảng cáo giả | `Game/GameController.Popups.cs` |
 | Khung popup chung: pill, tiêu đề, icon tròn, nút coin/ads, thanh tiến độ, nút X, hiệu ứng mở | `Game/GameController.Popup.cs` (`Card`, `OpenCard`) |
 | Popup giới thiệu item có hoạt ảnh (len ẩn, rối, băng, lăn, hộp kim chỉ, băng chuyền…) | `Game/GameController.ItemIntro.cs` |
@@ -89,7 +91,7 @@ Mở Console, gõ tag vào ô tìm kiếm để lọc: `[Level]` `[Move]` `[Boos
 | Hiệu ứng "thở", vòng lặp hoạt ảnh, keyframe | `Game/UIAnim.cs` (`Breath`, `LoopAnim`, `KF`) |
 | Thắng / lưu tiến trình / hết nước (tự đan nốt đã TẮT từ 28/10: `BoardState.AutoFinishOn` trong `Core/YarnCore.cs`) | `Game/GameController.Flow.cs` |
 | Góp ý 28/10: cuộn "?" (art tạm vẽ bằng code: `MysteryLook`), giỏ đầy Nice!/Great!/Perfect! + combo, Undo bay ngược, hiệu ứng len rối + "Untangled!", "Hold board to see", hướng dẫn Undo/Hint khi kệ gần đầy. Số liệu chỉnh trong `FB` | `Game/GameController.Feedback.cs` |
-| Hướng dẫn, bàn tay, nhận booster mới. Popup booster hiện ngay đầu level mở khóa, bấm Claim là +2 (`ClaimBooster`); riêng Undo/Hint có thêm lượt dùng thử miễn phí, đợi kệ còn ≤2 ô trống (`armed`, `CheckArmed` trong Feedback.cs) | `Game/GameController.Tutorial.cs` |
+| Hướng dẫn, bàn tay, nhận booster mới. Popup booster hiện ngay đầu level mở khóa, bấm Claim là +2 (`ClaimBooster`); ngay sau đó bắt buộc dùng thử miễn phí 1 lần (`CoachBoosterWhenReady`; Undo: bàn tay cho nối 1 cặp trước). Thoát level giữa chừng thì level sau bắt dùng lại | `Game/GameController.Tutorial.cs` |
 | Màn hình khác tỉ lệ (16:9, 20:9, iPad…), tai thỏ: cột game rộng 1080 luôn nằm giữa, cao tối thiểu 2100 (`Fit`); nền, thanh cam, popup, pháo giấy phủ cả màn hình. Thử: chọn các cỡ "KL …" trong Game view | `Game/GameController.ScreenFit.cs` |
 | Vị trí / kích thước các khối trên màn hình (số liệu trong `Lay`; với art mới xem thêm `SkinLay`, mục 7) | `Game/GameController.UI.cs` (`BuildUI`) |
 | Giá, coin thưởng, số revive, level mở khóa | `Resources/GameConfig.asset` (không cần sửa code) |
@@ -103,7 +105,7 @@ Mở Console, gõ tag vào ô tìm kiếm để lọc: `[Level]` `[Move]` `[Boos
 
 ## 6. Lưu tiến trình (PlayerPrefs)
 
-`kl.level` level đang chơi (số thứ tự) · `kl.coins` · `kl.inv.undo/hint/shelf` · `kl.claimed.*` booster đã nhận +2 · `kl.coached.*` đã hướng dẫn dùng thử Undo/Hint · `kl.seen.*` hướng dẫn đã xem · `kl.beaten.N` · `kl.lang` ngôn ngữ (`en` / `vi`).
+`kl.level` level đang chơi (số thứ tự) · `kl.coins` · `kl.inv.undo/hint/shelf` · `kl.claimed.*` booster đã nhận +2 · `kl.coached.*` đã dùng thử booster (lượt miễn phí) · `kl.seen.*` hướng dẫn đã xem · `kl.beaten.N` · `kl.lang` ngôn ngữ (`en` / `vi`).
 
 ## 7. Art của họa sĩ (Skin) – thêm 25/10
 

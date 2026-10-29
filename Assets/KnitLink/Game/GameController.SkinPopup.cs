@@ -17,7 +17,8 @@ namespace KnitLink
     {
         static class SkinPop
         {
-            public const string Panel = "Setting/pop-setting", Booster = "Booster/pop-booster", Revive = "Win-Lose-Revive/pop-revive",
+            public const string Panel = "Setting/pop-setting", Booster = "Booster/pop-booster", Revive = "yarn-bag/pop-revive",   // 29/10: rounded well for the shelf + bag (was Win-Lose-Revive/pop-revive)
+                                
                                  Lose = "Win-Lose-Revive/pop-lose", Tutorial = "Tutorial/pop-tutorial", Win = "Win-Lose-Revive/pop-win";
             // The panels are drawn at the art's own size (818 px wide, as in the mockups, e.g. Demo/out slot.png). All values in art pixels.
             public const float CardW = 818, CardInner = 660;
@@ -231,12 +232,20 @@ namespace KnitLink
         }
 
         // ---------- yarn bag in the revive popup ----------
-        /// <summary>The artist's open bag (bag1) behind the balls, its cut-out front over them. Returns false without the art.</summary>
-        bool SkinBagLoop(RectTransform holder, Image back, Image front, ref Vector2 mouth, float bw)
+        /// <summary>The artist's bag in a holder bw wide: open bag behind the balls, its front over them (Skin.BagSprites).
+        /// mouth = where the balls aim, relative to the holder centre. Returns false without the art.</summary>
+        bool SkinBagParts(RectTransform holder, Image back, Image front, float bw, out Vector2 mouth)
         {
-            var b1 = Skin.Get("Ingame/bag1"); var lip = Skin.BagFront(); if (b1 == null || lip == null) return false;
-            float bh = bw * b1.rect.height / b1.rect.width; holder.sizeDelta = new Vector2(bw, bh);
-            back.sprite = b1; front.sprite = lip; mouth = new Vector2(0, bh * (.5f - .15f)); return true;
+            mouth = Vector2.zero;
+            if (!Skin.BagSprites(out var b, out var f, out bool sack)) return false;
+            float bh = bw * b.rect.height / b.rect.width; holder.sizeDelta = new Vector2(bw, bh);
+            back.sprite = b; front.sprite = f;
+            if (sack)
+            {   // bag2 = the front half of bag1 (same width), sits on the same bottom edge
+                var fr = front.rectTransform; fr.anchorMin = new Vector2(0, 0); fr.anchorMax = new Vector2(1, 0); fr.pivot = new Vector2(.5f, 0);
+                fr.sizeDelta = new Vector2(0, bw * f.rect.height / f.rect.width); fr.anchoredPosition = Vector2.zero;
+            }
+            mouth = new Vector2(0, bh * (.5f - (sack ? RB.Mouth : .15f))); return true;
         }
 
         // ---------- item intro ----------

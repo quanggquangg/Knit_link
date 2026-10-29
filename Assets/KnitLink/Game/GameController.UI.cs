@@ -88,6 +88,7 @@ namespace KnitLink
                 rt.anchorMin = rt.anchorMax = new Vector2(0, .5f); rt.sizeDelta = new Vector2(Lay.SlotSize, Lay.SlotSize); rt.anchoredPosition = new Vector2(33 + colW * (i + .5f), 0);
                 var lk = UIKit.Img("Lock", rt, UIKit.IconLock, UIKit.Hex("#c9a77f")); lk.rectTransform.sizeDelta = new Vector2(46, 46);
                 slots.Add(im); slotLocks.Add(lk);
+                AddLockPlus(lk);   // "+" instead of the padlock, tap = Extra Shelf (GameController.Feedback.cs)
             }
 
             // ---- board ----

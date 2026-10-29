@@ -1,4 +1,4 @@
-// GameController – the 28/10 feedback round (decided item by item with the designer, see claude/feedback-28-10.md):
+﻿// GameController – the 28/10 feedback round (decided item by item with the designer, see claude/feedback-28-10.md):
 //   item 2  full basket reward: bump + sparkles + color ring + "ting" + light haptic + Nice!/Great!/Perfect! (~0.35 s),
 //           combo = baskets filled one after another with no pair sent to the shelf (the ting goes higher, the word steps up)
 //   item 5  Undo plays a simple move backwards: the 2 balls fly back to their spots, the yarn line pulls back (~0.45 s);
@@ -8,7 +8,8 @@
 //   item 7  "?" mystery ball: gray with a "?", can't be picked (shake + error sound + haptic + red flash), shows its color
 //           when a ball next to it leaves. Placeholder art drawn in code until the artist's asset arrives (MysteryLook).
 //   item 9  "Hold board to see" on the Lose and Revive popups: hold a finger on the dark area and the popup fades out
-//   item 10 the Undo / Hint unlock waits until the shelf has only 1-2 free slots (ArmFree)
+//   item 10 booster unlock: Claim +2, then a forced free first use at once (29/10, see GameController.Tutorial.cs)
+//   29/10   "+" on the 2 locked Extra Shelf slots, tap = Extra Shelf (AddLockPlus)
 // Every number to tune is in FB below.
 // (GameController is split into GameController.*.cs files by feature; all parts share the same fields.)
 using System.Collections;
@@ -35,13 +36,16 @@ namespace KnitLink
             // pitch of the combo "ting" per combo step, in semitones: C major pentatonic (C D E G A C D E G) so it never clashes with the music
             public static readonly int[] ComboSemitones = { 0, 2, 4, 7, 9, 12, 14, 16, 19 };
             public const float UndoFly = .38f;                   // undo: ball flight back to its spot
-            public const int ArmFree = 2;                        // Undo / Hint intro when free shelf slots <= this
             public const float HoldAlpha = .04f;                 // popup opacity while "Hold board to see" is held
             public static readonly Color MysteryGray = new Color(.72f, .70f, .68f, 1f);
+            // "+" on the 2 LOCKED Extra Shelf slots instead of a padlock (feedback 29/10, designer's choice): size, nudge up, color
+            public const float PlusSize = 32, PlusTall = 24, PlusThick = 9, PlusUp = 0;   // width of the "+", its height, bar thickness (art px of the 94×42 slot), nudge up
+            public static readonly Color PlusColor = UIKit.Hex("#b07a4c");
+            // shelf balls slide left to close the gap after shelf balls flew to a basket (29/10): wait after the last one left, slide time
+            public const float SlideAfter = .06f, SlideTime = .22f;
         }
 
         int combo;                    // baskets filled in a row without a pair going to the shelf
-        string armed;                 // claimed booster whose guided free first use waits for a nearly full shelf ("undo" / "hint")
         static bool Coached(string k) => PlayerPrefs.GetInt("kl.coached." + k, 0) == 1;
         HashSet<int> tangleFx;        // spots whose tangle was hit by the move being drawn (so belt slides don't trigger effects)
         /// <summary>What Undo needs to play a move backwards, keyed by history.Count right after the move was pushed.</summary>
@@ -256,31 +260,73 @@ namespace KnitLink
             }
         }
 
-        // ================= item 10: guided first use of Undo / Hint on a nearly full shelf =================
-        // (29/10: the unlock popup + Claim +2 comes at the start of the level; only the free guided use waits for this moment)
-        void CheckArmed()
+        // ================= feedback 29/10: "+" on the locked Extra Shelf slots =================
+        /// <summary>Puts a "+" on the padlock of a locked shelf slot (it shows and hides with the padlock) and makes the slot a
+        /// button for Extra Shelf: tap = same as the booster button (use it, or the buy popup, or "unlocks at level 15").</summary>
+        void AddLockPlus(Image lk)
         {
-            if (armed == null || S == null || S.over || S.Won || modalRT.gameObject.activeSelf || coach != null || pending > 0) return;
-            if (S.cap - S.shelf.Count > FB.ArmFree) return;
-            string k = armed; armed = null; int my = token;
-            StartCoroutine(Delay(.25f, () =>
+            var old = lk.transform.Find("Plus"); if (old != null) Destroy(old.gameObject);
+            if (!SK) lk.color = new Color(1, 1, 1, 0);   // old art: the "+" replaces the padlock icon
+            // drawn with 2 rounded bars, not a "+" letter: a font glyph never sits exactly in the middle of the slot
+            var plus = UIKit.Rect("Plus", lk.transform); plus.anchorMin = plus.anchorMax = new Vector2(.5f, .5f); plus.sizeDelta = new Vector2(FB.PlusSize, FB.PlusSize); plus.anchoredPosition = new Vector2(0, FB.PlusUp);
+            foreach (var hz in new[] { true, false })
             {
-                if (my != token) return;
-                if (S == null || S.over || modalRT.gameObject.activeSelf || coach != null) { armed = k; return; }
-                PlayerPrefs.SetInt("kl.coached." + k, 1); StartCoroutine(CoachBoosterWhenReady(k, my));   // "Tap Undo… this first one is free!"
-            }));
+                var bar = UIKit.Img(hz ? "H" : "V", plus, UIKit.Rounded, FB.PlusColor); bar.raycastTarget = false; bar.type = Image.Type.Sliced; bar.pixelsPerUnitMultiplier = 64f / FB.PlusThick;   // round ends = half the thickness
+                bar.rectTransform.sizeDelta = hz ? new Vector2(FB.PlusSize, FB.PlusThick) : new Vector2(FB.PlusThick, FB.PlusTall);
+            }
+            lk.raycastTarget = true;
+            var btn = lk.GetComponent<Button>(); if (btn == null) btn = lk.gameObject.AddComponent<Button>();
+            btn.transition = Selectable.Transition.None; btn.onClick.RemoveAllListeners(); btn.onClick.AddListener(() => UseShelf());
+        }
+
+        // ================= feedback 29/10: shelf balls slide left to close gaps =================
+        bool shelfSliding;            // true while SlideShelf moves shelf ball images (RenderShelf then leaves their positions alone)
+        Vector2[] slotHome;           // resting positions of the shelf ball images, saved while a slide runs (null = all at rest)
+        /// <summary>Puts every shelf ball image back on its own slot (after a slide, or if a slide was cut off by a level restart).</summary>
+        void ResetSlotPositions()
+        {
+            if (slotHome == null) return;
+            for (int i = 0; i < slots.Count && i < slotHome.Length; i++) slots[i].rectTransform.anchoredPosition = slotHome[i];
+            slotHome = null;
+        }
+        /// <summary>Shelf balls that stay move left into the empty slots, in order. Only runs when what is shown matches the rules state
+        /// (same colors in the same order); otherwise RenderShelf just redraws it as before.</summary>
+        IEnumerator SlideShelf(float wait, int my)
+        {
+            yield return new WaitForSecondsRealtime(wait);
+            while (shelfSliding) { if (my != token) yield break; yield return null; }   // two moves close together: one slide after the other
+            if (my != token || S == null) yield break;
+            var shown = new List<int>(); for (int i = 0; i < S.cap && i < slots.Count; i++) if (slotCol[i] != null) shown.Add(i);
+            if (shown.Count != S.shelf.Count) yield break;
+            for (int j = 0; j < shown.Count; j++) if (slotCol[shown[j]] != S.shelf[j]) yield break;
+            var moves = new List<(int from, int to)>(); for (int j = 0; j < shown.Count; j++) if (shown[j] != j) moves.Add((shown[j], j));
+            if (moves.Count == 0) yield break;
+            slotHome = slots.Select(sl => sl.rectTransform.anchoredPosition).ToArray(); shelfSliding = true;
+            for (float t = 0; t < FB.SlideTime; t += Time.unscaledDeltaTime)
+            {
+                if (my != token) { shelfSliding = false; yield break; }
+                float p = KF.EaseOut(t / FB.SlideTime);
+                foreach (var m in moves) slots[m.from].rectTransform.anchoredPosition = Vector2.Lerp(slotHome[m.from], slotHome[m.to], p);
+                yield return null;
+            }
+            shelfSliding = false;
+            // hand the colors over to the slots they slid into, then every image goes back home (same frame = no flash)
+            var cols = moves.Select(m => slotCol[m.from]).ToList();
+            foreach (var m in moves) SetSlot(m.from, null);
+            for (int n = 0; n < moves.Count; n++) SetSlot(moves[n].to, cols[n]);
+            ResetSlotPositions();
         }
 
         // ================= item 9: hold board to see =================
         void AddHoldToSee()
         {
-            var cg = modalRT.GetComponent<CanvasGroup>() ?? modalRT.gameObject.AddComponent<CanvasGroup>(); cg.alpha = 1;
+            var cg = modalRT.GetComponent<CanvasGroup>(); if (cg == null) cg = modalRT.gameObject.AddComponent<CanvasGroup>(); cg.alpha = 1;   // not "??": Unity's missing component is not C# null
             var t = UIKit.Display(UIKit.Txt("HoldToSee", modalRT, "Hold board to see", 60, Color.white)); t.raycastTarget = false;
             var ol = t.gameObject.AddComponent<Outline>(); ol.effectColor = UIKit.Hex("#3a2a22"); ol.effectDistance = new Vector2(4, -4);
             var rt = t.rectTransform; rt.anchorMin = new Vector2(0, 0); rt.anchorMax = new Vector2(1, 0); rt.pivot = new Vector2(.5f, 0); rt.sizeDelta = new Vector2(0, 90); rt.anchoredPosition = new Vector2(0, 150);
             LoopAnim.Add(t.gameObject, 1.6f, p => { if (t != null) { var k = t.color; k.a = .55f + .45f * Mathf.Sin(p * Mathf.PI); t.color = k; } });
             var dim = modalRT.Find("Dim"); if (dim == null) return;
-            var trig = dim.gameObject.GetComponent<EventTrigger>() ?? dim.gameObject.AddComponent<EventTrigger>();
+            var trig = dim.gameObject.GetComponent<EventTrigger>(); if (trig == null) trig = dim.gameObject.AddComponent<EventTrigger>();
             void On(EventTriggerType type, System.Action act) { var e = new EventTrigger.Entry { eventID = type }; e.callback.AddListener(_ => act()); trig.triggers.Add(e); }
             On(EventTriggerType.PointerDown, () => { if (cg != null) cg.alpha = FB.HoldAlpha; });
             On(EventTriggerType.PointerUp, () => { if (cg != null) cg.alpha = 1; });

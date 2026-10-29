@@ -35,7 +35,7 @@ namespace KnitLink
         {
             if (S == null || S.over) return;
             if (S.Won) { if (pending == 0 && busyBaskets.Count == 0) StartCoroutine(Delay(.3f, ShowWin)); return; }
-            MaybeAuto(); CheckStuck(); CheckArmed();
+            MaybeAuto(); CheckStuck();
         }
         // ---------- progress (build 1: no Home, no lives) ----------
         static bool Beaten(int num) => PlayerPrefs.GetInt("kl.beaten." + num, 0) == 1;

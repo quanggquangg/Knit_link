@@ -17,10 +17,10 @@
     { "color": "B", "part": "high sky" }
   ],
   "board": [
-    "B  C  B   B  B  C",
+    "B  B  B   B  B  C",
     "R  R  B   C  C  Y",
-    "Y  _  B   B  C  B",
-    "Y  B  X2  R  Y  B",
+    "R  _  B   B  C  B",
+    "Y  C  X2  Y  Y  B",
     "C  C  R   Y  B  C",
     "B  B  Y   Y  C  Y",
     "B  B  B   C  C  C"

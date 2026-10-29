@@ -54,6 +54,7 @@ namespace KnitLink
         void RenderShelf()
         {
             int n = S.cap;
+            if (!shelfSliding) ResetSlotPositions();   // a cut-off slide never leaves a ball between two slots
             for (int i = 0; i < slots.Count; i++)
             {
                 bool locked = i >= n, has = !locked && i < S.shelf.Count;

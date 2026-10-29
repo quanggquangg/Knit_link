@@ -110,6 +110,7 @@ namespace KnitLink
                 hole.transform.SetSiblingIndex(0); slotHoles.Add(hole);
                 var lk = slotLocks[i]; lk.sprite = Skin.Get("Ingame/shelf-hole2"); lk.color = Color.white; lk.transform.SetParent(shelfRow, false);
                 lk.rectTransform.anchorMin = lk.rectTransform.anchorMax = new Vector2(0, .5f); lk.rectTransform.sizeDelta = new Vector2(94, 42); lk.rectTransform.anchoredPosition = hrt.anchoredPosition;
+                AddLockPlus(lk);   // "+" on the locked slot, tap = Extra Shelf (GameController.Feedback.cs)
                 var b = slots[i]; b.rectTransform.sizeDelta = new Vector2(SkinLay.SlotBall, SkinLay.SlotBall) * Skin.BallBoost; b.rectTransform.anchoredPosition = new Vector2(hrt.anchoredPosition.x, SkinLay.HoleUp + SkinLay.SlotBall * SkinLay.SlotBallUp);
                 b.preserveAspect = true; b.transform.SetAsLastSibling(); UIKit.DropShadow(b, 6, 5, ShadowWarm);   // demo: drop-shadow(0 2px 2px)
             }
@@ -182,9 +183,9 @@ namespace KnitLink
         // ---------- yarn bag chip ----------
         void SkinBagChip()
         {
-            var chip = bagRT.GetComponent<Image>(); var s = Skin.Sliced("Ingame/bag-box", 48, 0, 48, 0);
+            var chip = bagRT.GetComponent<Image>(); var s = Skin.Sliced(Skin.BagArt("bag-box"), 48, 0, 48, 0);
             if (s != null) { chip.sprite = s; chip.type = Image.Type.Sliced; chip.color = Color.white; chip.pixelsPerUnitMultiplier = 1.1f; }
-            var icon = (RectTransform)bagRT.GetChild(0); var ii = icon.GetComponent<Image>(); var isp = Skin.Get("Ingame/icon-bag"); if (isp != null) { ii.sprite = isp; ii.preserveAspect = true; }
+            var icon = (RectTransform)bagRT.GetChild(0); var ii = icon.GetComponent<Image>(); var isp = Skin.Get(Skin.BagArt("icon-bag")); if (isp != null) { ii.sprite = isp; ii.preserveAspect = true; }
             // centred under the shelf, hanging over its bottom edge (web demo); grows to both sides with the number of colors
             bagRT.SetParent(shelfRow, false); bagRT.SetAsLastSibling();
             bagRT.anchorMin = bagRT.anchorMax = new Vector2(.5f, 0); bagRT.pivot = new Vector2(.5f, .5f); bagRT.anchoredPosition = new Vector2(0, SkinLay.BagChipY);

@@ -21,7 +21,7 @@ namespace KnitLink
             prog = new float[L.baskets.Length]; busyBaskets.Clear(); leavingBaskets.Clear();
             foreach (var v in basketViews.Values) Destroy(v.rt.gameObject); basketViews.Clear(); basketOrder.Clear();
             // a booster that unlocked at an earlier level the player skipped is simply given (+2)
-            combo = 0; armed = null; undoInfo.Clear();
+            combo = 0; undoInfo.Clear(); shelfSliding = false;
             foreach (var k in BKeys) if (L.num > Unlock[k] && !Claimed(k)) { PlayerPrefs.SetInt("kl.claimed." + k, 1); SetInv(k, Inv(k) + Cfg.boostersOnUnlock); }
             // "Level N" only – no subtitle under it (decided 20/10); hard levels get a pink title
             title.text = $"Level {L.num}";

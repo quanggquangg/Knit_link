@@ -63,7 +63,7 @@ namespace KnitLink
                 float h = Mathf.Max(size * 1.3f, t.preferredHeight + 6); t.transform.SetParent(Row(h, skin ? SkinPop.LeadGap : 36), false); UIKit.Stretch(t.rectTransform); return t;   // skin: more air under the big icon
             }
             public void Note(string text, Color c) { var t = UIKit.Txt("Note", Row(46, 26), text, 39, c); UIKit.Stretch(t.rectTransform); }
-            /// <summary>[USE COINS price] [WATCH AD Free]. Not enough coins: coin button greyed + red line + ad glows. adAct null = coins only.</summary>
+            /// <summary>[USE COINS price] [WATCH AD Free]. Not enough coins: coin button greyed + red line + ad button breathes. adAct null = coins only.</summary>
             public Button Choice(int price, System.Action coinAct, System.Action adAct, string coinWord = null)
             {
                 bool can = Coins >= price;
@@ -78,9 +78,12 @@ namespace KnitLink
                 {
                     var ad = gc.ChoiceButton(row, x0 + bw + gap, bw, "WATCH AD", "Free", UIKit.IconAd, UIKit.Hex("#2f8a3d"), UIKit.Hex("#1d5e28"), Color.white, adAct);
                     if (!can)
-                    {   // glow ring behind the ad button + breath
-                        var glow = UIKit.Img("Glow", ad.transform, UIKit.Rounded, new Color(1f, .83f, .31f, .85f)); glow.transform.SetAsFirstSibling();
-                        glow.rectTransform.anchorMin = Vector2.zero; glow.rectTransform.anchorMax = Vector2.one; glow.rectTransform.offsetMin = new Vector2(-14, -26); glow.rectTransform.offsetMax = new Vector2(14, 14);
+                    {   // old art: glow box behind the ad button. New art: no glow (designer 29/10), the button only breathes
+                        if (!skin)
+                        {
+                            var glow = UIKit.Img("Glow", ad.transform, UIKit.Rounded, new Color(1f, .83f, .31f, .85f)); glow.transform.SetAsFirstSibling(); glow.raycastTarget = false;
+                            glow.rectTransform.anchorMin = Vector2.zero; glow.rectTransform.anchorMax = Vector2.one; glow.rectTransform.offsetMin = new Vector2(-14, -26); glow.rectTransform.offsetMax = new Vector2(14, 14);
+                        }
                         ad.gameObject.AddComponent<Breath>();
                     }
                 }
@@ -90,7 +93,7 @@ namespace KnitLink
             {
                 var head = Row(44, skin && circle && y <= SkinPop.CircleBottom ? SkinPop.LeadGap : 36);   // first row under the art circle gets the same air as the text
                 var l = UIKit.Txt("L", head, "Picture", 36, skin ? SkinPop.Soft : CardSoft, TextAnchor.MiddleLeft); UIKit.Stretch(l.rectTransform);
-                var r = UIKit.Txt("R", head, $"{pct}% knitted", 36, skin ? SkinPop.Soft : CardSoft, TextAnchor.MiddleRight); UIKit.Stretch(r.rectTransform);
+                var r = UIKit.Txt("R", head, skin ? $"{pct}%" : $"{pct}% knitted"   /* new art: "Picture 72%" like the mockups */, 36, skin ? SkinPop.Soft : CardSoft, TextAnchor.MiddleRight); UIKit.Stretch(r.rectTransform);
                 if (skin) { gc.SkinProgress(Row(46, 16), pct); return; }
                 var bar = Row(34, 16); var bgI = UIKit.Img("Bar", bar, UIKit.Rounded, UIKit.Hex("#e2d4b6")); UIKit.Stretch(bgI.rectTransform); GameController.Pill(bgI, 34);
                 if (pct > 0)

@@ -22,11 +22,12 @@ namespace KnitLink
             yield return HardBanner(my);
             if (my != token) yield break;
             // a booster unlocks at its level NUMBER (GameConfig), whatever level file sits there
-            // The unlock popup + Claim (+2 boosters) comes right at the start (29/10). For Undo / Hint the guided FREE first use then
-            // waits until the shelf is nearly full (CheckArmed, GameController.Feedback.cs); if that never happens it waits on the next levels.
-            armed = new[] { "undo", "hint" }.FirstOrDefault(k => L.num >= Unlock[k] && Claimed(k) && !Coached(k));
+            // The unlock popup + Claim (+2 boosters) comes right at the start, then the FORCED free first use follows at once
+            // (feedback 29/10). If the player left the level before that first use, it is forced again on the next level played.
             foreach (var k in BKeys)
                 if (L.num == Unlock[k] && !Claimed(k)) { yield return new WaitForSecondsRealtime(.35f); if (my == token) BoosterIntro(k); yield break; }
+            var due = BKeys.FirstOrDefault(k => L.num >= Unlock[k] && Claimed(k) && !Coached(k));
+            if (due != null) { yield return CoachBoosterWhenReady(due, my); yield break; }
             if (string.IsNullOrEmpty(L.intro)) yield break;
             KLog.Info("Tutorial", $"Intro {L.intro} {L.introKey} on level {L.num}");
             switch (L.intro)
@@ -89,14 +90,13 @@ namespace KnitLink
             return null;
         }
 
-        // booster unlock: popup + Claim (+2), then a forced and free first use
+        // booster unlock: popup + Claim (+2), then at once a forced and free first use (CoachBoosterWhenReady)
         // the "New booster" popup is in GameController.Popups.cs (BoosterIntro)
         void ClaimBooster(string k)
         {
             PlayerPrefs.SetInt("kl.claimed." + k, 1); SetInv(k, Inv(k) + Cfg.boostersOnUnlock); CloseModal(); RenderBoosters(); Sfx.Play(Sfx.Unlock);
             StartCoroutine(Bump((RectTransform)bButtons[k].transform, 1.16f));
-            if (k == "undo" || k == "hint") armed = k;   // free guided use when the shelf is nearly full (CheckArmed)
-            else StartCoroutine(CoachBoosterWhenReady(k, token));
+            StartCoroutine(CoachBoosterWhenReady(k, token));   // forced free first use right away
         }
         /// <summary>Short line after the free first use: what the booster just did (user 25/10: clearer than "used for free"; no count –
         /// during this first use the button shows "Free" instead of the number, see FreeBadge).</summary>
@@ -112,16 +112,21 @@ namespace KnitLink
         IEnumerator CoachBoosterWhenReady(string k, int my)
         {
             yield return new WaitForSecondsRealtime(.4f);
+            while (pending > 0 || autoRun) { if (my != token || S == null || S.Won || S.over) yield break; yield return null; }
             if (k == "undo" && history.Count == 0)
-            {   // Undo needs a move to take back: let the player match a pair first
-                HintBubble(boardPanel, "Match a pair first, then try Undo.", 3f);
+            {   // Undo needs a move to take back: the hand makes the player match a pair first (forced, like level 1)
+                var pr = PickPair(false);
+                if (pr != null) StartCoach(new Coach { trays = new List<int> { pr.Value.a, pr.Value.b }, text = "Match this pair first." });
                 while (history.Count == 0 || pending > 0 || autoRun) { if (my != token || S == null || S.Won || S.over) yield break; yield return null; }
                 yield return new WaitForSecondsRealtime(.2f);
             }
             if (my != token || S == null || S.Won || S.over || modalRT.gameObject.activeSelf) yield break;
+            // the forced use: everything but the booster button is dimmed and blocked until it is tapped (StartCoach)
+            StartCoach(new Coach { booster = k, text = $"Tap {BName[k]} to use it. This first one is free!", done = () =>
             {
-                StartCoach(new Coach { booster = k, text = $"Tap {BName[k]} to use it. This first one is free!", done = () => StartCoroutine(Delay(.3f, () => HintBubble((RectTransform)bButtons[k].transform, BoosterDoneText(k), 3f))) });
-            }
+                PlayerPrefs.SetInt("kl.coached." + k, 1);   // only once it was really used (Coached)
+                StartCoroutine(Delay(.3f, () => HintBubble((RectTransform)bButtons[k].transform, BoosterDoneText(k), 3f)));
+            } });
         }
 
         // new mechanic popups (animated) are in GameController.ItemIntro.cs (MechIntro)

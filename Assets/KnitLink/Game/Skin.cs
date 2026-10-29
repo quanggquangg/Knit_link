@@ -271,6 +271,17 @@ namespace KnitLink
         }
 
         // ---------- yarn bag ----------
+        /// <summary>Yarn bag art (29/10): the artist's brown sack in "yarn-bag/" (bag1 open bag, bag2 its front half, bag-box chip,
+        /// icon-bag chip icon, pop-revive panel). Falls back to the first purple bag in "Ingame/" when a file is missing.</summary>
+        public static string BagArt(string file) => Tex("yarn-bag/" + file) != null ? "yarn-bag/" + file : "Ingame/" + file;
+        /// <summary>Back (open bag) and front (drawn over the balls) of the yarn bag. sack = new art: the front is bag2, same width as
+        /// bag1, bottom-aligned; old art: the front is bag1 cut below its mouth rim (BagFront).</summary>
+        public static bool BagSprites(out Sprite back, out Sprite front, out bool sack)
+        {
+            sack = Tex("yarn-bag/bag1") != null && Tex("yarn-bag/bag2") != null;
+            back = sack ? Get("yarn-bag/bag1") : Get("Ingame/bag1"); front = sack ? Get("yarn-bag/bag2") : BagFront();
+            return back != null && front != null;
+        }
         /// <summary>Open bag (bag1) cut below the front rim of its mouth: drawn over the balls so they drop INTO the bag.
         /// Rim measured on bag1 at 253×266 (scaled to the real file): (60,36) (90,42) (126,59) (160,53) (190,41).</summary>
         public static Sprite BagFront()

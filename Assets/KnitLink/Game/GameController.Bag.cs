@@ -3,7 +3,8 @@
 //   - inside: one ball per COLOR with a small count; the chip grows with the number of colors, anchored right
 //   - "balls fly into the bag" animation: a big bag pops up in the middle of the board, the 4 oldest shelf balls
 //     lift off one by one, arc into its mouth and drop inside (bag back -> ball -> bag front), the bag squashes on
-//     each catch, then it shrinks and flies to the chip. Timings in BagT (seconds).
+//     each catch, then it shrinks and flies to the chip. With the brown sack (yarn-bag/, 29/10) the balls stay
+//     visible in its mouth until it flies off, like the revive popup. Timings in BagT (seconds).
 // (GameController is split into GameController.*.cs files by feature; all parts share the same fields.)
 using System.Collections;
 using System.Collections.Generic;
@@ -73,12 +74,8 @@ namespace KnitLink
             var front = UIKit.Img("Front", bag, UIKit.BagFront, Color.white); UIKit.Stretch(front.rectTransform);
             if (firstTime) bagRT.GetComponent<CanvasGroup>().alpha = 0;
             var mouth = new Vector2(0, BW * (.5f - .33f));   // bag-local position of the mouth centre
-            Sprite bag1 = SK ? Skin.Get("Ingame/bag1") : null, bagLip = SK ? Skin.BagFront() : null;
-            if (bag1 != null && bagLip != null)
-            {   // artist's bag: bag1 behind the balls, its cut-out front over them, mouth at 15 % of the height (stays open when full)
-                float bh = BW * bag1.rect.height / bag1.rect.width; bag.sizeDelta = new Vector2(BW, bh);
-                back.sprite = bag1; front.sprite = bagLip; mouth = new Vector2(0, bh * (.5f - .15f));
-            }
+            // artist's bag: open bag behind the balls, its front over them (stays open when full) – GameController.SkinPopup.cs
+            if (SK && SkinBagParts(bag, back, front, BW, out var m)) mouth = m;
             float t0 = Time.unscaledTime;
             // 1) pop + dim
             Sfx.Play(Sfx.BagOpen);
@@ -133,13 +130,25 @@ namespace KnitLink
                 rt.position = Vector3.Lerp(Vector3.Lerp(lift, mid, e), Vector3.Lerp(mid, mouthW, e), e);
                 rt.localScale = Vector3.one * Mathf.Lerp(1.18f, .8f, e); rt.localEulerAngles = new Vector3(0, 0, -360 * e); yield return null;
             }
-            // now behind the bag front: it drops inside
-            rt.SetParent(balls, true); Vector3 a = rt.position, b = bag.TransformPoint(mouth + new Vector2(0, -70));
-            for (float t = 0; t < BagT.Drop; t += Time.unscaledDeltaTime) { if (my != token) yield break; float p = t / BagT.Drop; rt.position = Vector3.Lerp(a, b, p * p); rt.localScale = Vector3.one * Mathf.Lerp(.8f, .62f, p); yield return null; }
-            Destroy(im.gameObject);
+            // now behind the bag front
+            rt.SetParent(balls, true); Vector3 a = rt.position;
+            bool sack = SK && Skin.BagSprites(out _, out _, out bool isSack) && isSack;
+            if (sack)
+            {   // new sack art (29/10): the ball settles in the mouth and STAYS there (like the revive popup, RB.Pile) until the bag flies off
+                if (i < 2) rt.SetAsFirstSibling();   // the first two sit behind the last two
+                float pile = bag.rect.width * RB.PileOfBag; Vector3 b = bag.TransformPoint(mouth + RB.Pile[i % RB.Pile.Length] * pile);
+                for (float t = 0; t < BagT.Drop; t += Time.unscaledDeltaTime) { if (my != token) yield break; float p = KF.EaseOut(t / BagT.Drop); rt.position = Vector3.Lerp(a, b, p); rt.localScale = Vector3.one * Mathf.Lerp(.8f, pile / sz, p); rt.localEulerAngles = Vector3.zero; yield return null; }
+                rt.position = b; rt.localScale = Vector3.one * (pile / sz);
+            }
+            else
+            {   // old bag: it drops inside and disappears
+                Vector3 b = bag.TransformPoint(mouth + new Vector2(0, -70));
+                for (float t = 0; t < BagT.Drop; t += Time.unscaledDeltaTime) { if (my != token) yield break; float p = t / BagT.Drop; rt.position = Vector3.Lerp(a, b, p * p); rt.localScale = Vector3.one * Mathf.Lerp(.8f, .62f, p); yield return null; }
+                Destroy(im.gameObject);
+            }
             StartCoroutine(Squash(bag)); Sfx.Play(Sfx.Clink);
             // soft glow, not a solid white oval (a solid one looked like a hole in the bag's mouth – fixed 25/10)
-            var puff = UIKit.Img("Puff", bag, UIKit.SoftGlow, new Color(1, 1, 1, .9f)); puff.rectTransform.sizeDelta = new Vector2(220, 96); puff.rectTransform.anchoredPosition = mouth;
+            var puff = UIKit.Img("Puff", bag, UIKit.SoftGlow, new Color(1, 1, 1, sack ? .4f : .9f));   // lighter on the sack: the balls in its mouth stay readable puff.rectTransform.sizeDelta = new Vector2(220, 96); puff.rectTransform.anchoredPosition = mouth;
             StartCoroutine(PuffFade(puff));
         }
         IEnumerator Squash(RectTransform rt)

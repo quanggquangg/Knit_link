@@ -40,7 +40,7 @@ namespace KnitLink
             }
             RenderBaskets(false);   // the full basket stays until its balls land; the next one already moves up
             var flights = new List<Coroutine>(); var doneEv = new List<GameEvent>(); var shelfUsed = new List<int>();
-            int li = 0; float delay = start;
+            int li = 0; float delay = start; float lastTake = -1;   // when the last shelf ball leaves for a basket (then the rest slides left)
             foreach (var e in ev)
             {
                 if (e.k == EvKind.Jar || e.k == EvKind.Shelf || e.k == EvKind.Over)
@@ -59,7 +59,7 @@ namespace KnitLink
                 else if (e.k == EvKind.Absorb)
                 {
                     int idx = -1; for (int i = 0; i < slots.Count; i++) if (!shelfUsed.Contains(i) && slotCol[i] == e.c) { idx = i; break; }
-                    if (idx < 0) continue; shelfUsed.Add(idx); float d = delay + .25f; delay += .06f; var ek = e; int sidx = idx;
+                    if (idx < 0) continue; shelfUsed.Add(idx); float d = delay + .25f; delay += .06f; var ek = e; int sidx = idx; lastTake = Mathf.Max(lastTake, d);
                     flights.Add(StartCoroutine(FlyTo(slots[sidx].rectTransform.position, () => BasketPos(ek.basketId), e.c, d, .42f, .45f,
                         () => { if (my == token) LandIn(ek.basketId); }, () => SetSlot(sidx, null))));
                 }
@@ -71,6 +71,7 @@ namespace KnitLink
                 }
                 else if (e.k == EvKind.Done) doneEv.Add(e);
             }
+            if (lastTake >= 0) flights.Add(StartCoroutine(SlideShelf(lastTake + FB.SlideAfter, my)));   // close the gaps (GameController.Feedback.cs)
             foreach (var f in flights) yield return f;
             if (my != token) yield break;
             RenderShelf(); RenderBoosters();
